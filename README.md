@@ -1,6 +1,3 @@
-# MCF51AG128_Bootloader_SPI
-Remark : References made are from MCF51AG128.pdf
-
 # Context
 
 # Flash memory
@@ -12,7 +9,11 @@ Then we have to follow a specific algorithm (P.88/89) by writing registers to ma
 
 ### Flash clock configuration
 
-There is the steps used to configure the flash clock.</br>
+There is the configuration path of the clock. <br>
+![](Images/Clock_conf_1.PNG)
+![](Images/Clock_conf_2.PNG)
+
+There is the steps used to configure the flash clock with the frequency and the registers value at each steps.</br>
 
 ![](Images/Clock_Schema.PNG)
 
@@ -70,6 +71,8 @@ FCDIV|The BUSCLOCK is divided by 56| 0xC7
 
 The following program is made by using the algorithm P.88/89 <br>
 The program write the value 0x633F67E to the 0x8004 address.
+
+Unfortunately, the program don't work each time.
 
 ````C
 // Declaration
