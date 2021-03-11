@@ -1,3 +1,5 @@
+> All the references made are from MCF51AG128RM.pdf
+
 # Context
 
 The aim of the projet if to reflash the IB program through the SPI.<br>
@@ -89,7 +91,15 @@ FCDIV|The BUSCLOCK is divided by 56| 0xC7
 The following program is made by using the algorithm P.88/89 <br>
 The program write the value 0x633F67E to the 0x8004 address.
 
-Unfortunately, the program don't work each time.
+> Unfortunately, the program don't work each time. I didn't found the problem yet. 
+
+#### Debug Result
+
+<center>
+<img src="Images/Result_write.PNG"/>
+</center>
+
+#### Code used
 
 ````C
 // Declaration
