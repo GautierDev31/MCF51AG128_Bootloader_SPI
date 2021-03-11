@@ -1,5 +1,15 @@
 # Context
 
+<center>
+<img src="Images/Global_CTA.PNG"  width="60%"/>
+</center>
+
+# Bootloader
+
+<center>
+<img src="Images/Algorigram_bootloader.PNG"  width="35%"/>
+</center>
+
 # Flash memory
 
 ### Introduction
