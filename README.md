@@ -1,10 +1,17 @@
 # Context
 
+The aim of the projet if to reflash the IB program through the SPI.<br>
+The FEB communicate to the IB with a specific SPI protocol. We will use this protocol to trigger and transmit the programmation of the flash.
+
 <center>
 <img src="Images/Global_CTA.PNG"  width="60%"/>
 </center>
 
 # Bootloader
+
+There is the Algorigram of the bootloader. <br>
+After a reboot, the program will wait a specific SPI signal to enter in an update mode of the flash. <br>
+If the SPI signal is not received, the program will jump to the application.
 
 <center>
 <img src="Images/Algorigram_bootloader.PNG"  width="35%"/>
