@@ -1,0 +1,52 @@
+#include <hidef.h> /* for EnableInterrupts macro */
+#include "derivative.h" /* include peripheral declarations */
+
+
+
+
+void main(void) {
+	DisableInterrupts; 
+	unsigned long *pdst;
+	unsigned int value = 0x54454554;
+	unsigned int i = 0;
+	
+	//SOPT1_WAITE = 0;
+	ICSSC = 0x70;
+	
+	SMCLK_MPE = 1; 
+	SMCLK_MCSEL2 = 0; 
+	SMCLK_MCSEL1 = 0; 
+	SMCLK_MCSEL0 = 1; 
+	
+	// Flash clock
+	FCDIV_FDIVLD = 1;
+	FCDIV_PRDIV8 = 1;
+	FCDIV_FDIV = 0x4; 
+	
+	
+	DisableInterrupts; 
+	FSTAT_FCBEF = 1;
+	pdst=(unsigned long *)0x8000; // Program to this address
+	*pdst = value; // Program this value
+	FCMD = 0x20; // Program command
+	FSTAT = 0x80; // Clear FSTAT register
+	while (!FSTAT_FCCF){i++;} // Wait until the command isn't finished
+	EnableInterrupts;
+	
+	DisableInterrupts; 
+	FSTAT_FCBEF = 1;
+	pdst=(unsigned long *)0x8004; // Program to this address
+	*pdst = value; // Program this value
+	FCMD = 0x20; // Program command
+	FSTAT = 0x80; // Clear FSTAT register
+	while (!FSTAT_FCCF){i++;} // Wait until the command isn't finished
+	EnableInterrupts;
+	
+
+
+	
+  for(;;) {
+    __RESET_WATCHDOG();	/* feeds the dog */
+  } /* loop forever */
+  /* please make sure that you never leave main */
+}
