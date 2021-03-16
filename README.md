@@ -45,78 +45,81 @@ Register|Operation|Value
 ICSSC_IREFST|Choose the internal clock| 1
 ICSS_CLKST|Choose the FLL|00
 ICSSC_DMX32|Define the internal clock source to 32.768 kHz|1
-ICSSC_DRS|Define the FLL output to 19,92MHz|00
-ICSC2_BDIV|The FLL output is not divided|00
+ICSSC_DRS|Define the FLL output to 39,84MHz|01
+ICSC2_BDIV|The FLL output is divided by two|01
 FCDIV|The BUSCLOCK is divided by 56| 0xC7
 
 #### Code used :
 
 ````C
-	// Reference Internal clock configuration
-	ICSSC_DRST_DRS=0;
-	ICSSC_DMX32=1;
-	ICSSC_IREFST =1;
-	ICSSC_CLKST1 = 0;
-	ICSSC_CLKST0 = 0;
-	ICSSC_OSCINIT = 0;
-	ICSSC_FTRIM = 0;	
-	
-	ICSC1_CLKS1 = 0;
-	ICSC1_CLKS0 = 0;
-	ICSC1_RDIV2 = 1;
-	ICSC1_RDIV1 = 0;
-	ICSC1_RDIV0 = 0;
-	ICSC1_IREFS = 1;
-	ICSC1_IRCLKEN = 0;
-	ICSC1_IREFSTEN = 0;
+	// Intern clock init 
+	ICSSC = 0x70;
 
-	// BDIV Configuration
-	ICSC2_BDIV1 = 0;
-	ICSC2_BDIV0 = 0;
-	ICSC2_RANGE = 1;
-	ICSC2_HGO = 0;
-	ICSC2_LP = 0;
-	ICSC2_EREFS = 1; /* => Oscillator requested */
-	ICSC2_ERCLKEN = 0;
-	ICSC2_EREFSTEN = 0;
-	
-	// Flash clock
+	// Flash clock init
 	FCDIV_FDIVLD = 1;
 	FCDIV_PRDIV8 = 1;
-	FCDIV_FDIV = 0x7; 
+	FCDIV_FDIV = 0x8; 
 ````
 
-### Flash program
+### Flash functions
 
-The following program is made by using the algorithm P.88/89 <br>
-The program write the value 0x633F67E to the 0x8004 address.
+Functions have been made, using commands code and algorithms, to manage the flash memory.
 
-> Unfortunately, the program don't work each time. I didn't found the problem yet. 
+> Unfortunately, thoses functions only work "step by step" on the debug mode <br>
+> During a normal mode, the program constantly have an address access error. 
+
+Function | Command | Inputs
+---------|---------|-------
+Flash_erase| Erase the flash memory at a specific address| address : address where the flash block have to be erased
+Flash_write| Write a value to a specific address | address : address where the value have to be written <br> value : value which have to be written
+Flash_burst| Write a serie of value from a specific address | address : address where the program will begin to write <br> tblvalue : table of the values <br> length : length of values
 
 #### Debug Result
+
+The program write the value 0x633F67E to the 0x8004 address.
 
 <center>
 <img src="Images/Result_write.PNG"/>
 </center>
 
-#### Code used
+#### Code
 
 ````C
-// Declaration
-unsigned long *pdst;
-
-// Flash program
-	if (FCDIV_FDIVLD){
+void Flash_burst(unsigned long address, unsigned int tblvalue[], unsigned int length){
+	unsigned int i;
+	unsigned long *pdst;
+	
+	for (i = 0; i<length; i++){
+		pdst = (unsigned long *)(address + 4*i);
 		FSTAT_FCBEF = 1;
-		if (FSTAT_FCBEF == 1){
-			if(!FSTAT_FPVIOL && !FSTAT_FACCERR){
-				pdst=(unsigned long *)0x8004;
-				*pdst = 0x633F67E;
-				FCMD = 0x20; 
-				FSTAT = 0x80;
-				while (!FSTAT_FCCF){}
-			}
-		}
+		if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30;}
+		*pdst = tblvalue[i];
+		FCMD = 0x25; 
+		FSTAT = 0x80;
+		while (!FSTAT_FCCF){}
 	}
+}
+
+void Flash_write(unsigned long address, unsigned int value){
+	unsigned long *pdst = (unsigned long *)address;
+	FSTAT_FCBEF = 1;
+	if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30;}
+	*pdst = value;
+	FCMD = 0x20; 
+	FSTAT = 0x80;
+	while (!FSTAT_FCCF){}
+}
+
+void Flash_erase(unsigned long address ){
+	unsigned long *pdst = (unsigned long *)address;
+	unsigned int value = 0x54454554;
+	
+	FSTAT_FCBEF = 1;
+	if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30; }
+	*pdst = value;
+	FCMD = 0x40; 
+	FSTAT = 0x80;
+	while (!FSTAT_FCCF){}
+}
 
 ````
