@@ -65,9 +65,6 @@ FCDIV|The BUSCLOCK is divided by 56| 0xC7
 
 Functions have been made, using commands code and algorithms, to manage the flash memory.
 
-> Unfortunately, thoses functions only work "step by step" on the debug mode <br>
-> During a normal mode, the program constantly have an address access error. 
-
 Function | Command | Inputs
 ---------|---------|-------
 Flash_erase| Erase the flash memory at a specific address| address : address where the flash block have to be erased
