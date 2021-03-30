@@ -4,8 +4,9 @@
 [**2. Bootloader**](#2) <br>
 [a. General Algorithm](#2.1) <br>
 [b.	Memory organisation](#2.2) <br>
-[c. SPI commands](#2.3) <br>
-[d. SPI Algorithm](#2.3) <br>
+[c.	Jump address](#2.3) <br>
+[d. SPI commands](#2.4) <br>
+[e. SPI Algorithm](#2.5) <br>
 [**3. Flash memory**](#3) <br>
 [a. Introduction](#3.1) <br>
 [b. Flash clock configuration](#3.2) <br>
@@ -18,11 +19,11 @@
 
 # Context <a id="1"></a>
 
-The aim of the projet if to reflash the IB program through the SPI.<br>
-The FEB communicate to the IB with a specific SPI protocol. We will use this protocol to trigger and transmit the programmation of the flash.
-
+The aim of the projet if to reflash the MCF51AG128 program through the SPI.<br>
+In our case, the microcontroller is in a system where the BDM port is not accessible. So it is not reprogrammable through this one.
+The communication that is accessible with the microcontroller is only with the SPI. So for the microcontroller to be reprogrammable, we have to make a bootloader where data is sent in SPI<br>
 <center>
-<img src="Images/Global_CTA.PNG"  width="60%"/>
+<img src="Images/system.PNG"  width="60%"/>
 </center>
 
 # Bootloader <a id="2"></a>
@@ -43,9 +44,17 @@ If the SPI signal is not received, the program will jump to the application.
 <img src="Images/Memory.PNG"  width="40%"/>
 </center>
 
-### SPI commands <a id="2.3"></a>
+### Jump address <a id="2.3"></a>
 
-### SPI Algorithm <a id="2.4"></a>
+FLASH > Program.elf.xMAP
+
+<center>
+<img src="Images/Memory_main_jump.PNG"  width="70%"/>
+</center>
+
+### SPI commands <a id="2.4"></a>
+
+### SPI Algorithm <a id="2.5"></a>
 
 
 # Flash memory <a id="3"></a>
