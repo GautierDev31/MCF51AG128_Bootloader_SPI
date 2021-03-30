@@ -5,8 +5,9 @@
 [a. General Algorithm](#2.1) <br>
 [b.	Memory organisation](#2.2) <br>
 [c.	Jump address](#2.3) <br>
-[d. SPI commands](#2.4) <br>
-[e. SPI Algorithm](#2.5) <br>
+[d. SPI frames](#2.4) <br>
+[e. SPI commands](#2.5) <br>
+[f. SPI Algorithm](#2.6) <br>
 [**3. Flash memory**](#3) <br>
 [a. Introduction](#3.1) <br>
 [b. Flash clock configuration](#3.2) <br>
@@ -46,15 +47,34 @@ If the SPI signal is not received, the program will jump to the application.
 
 ### Jump address <a id="2.3"></a>
 
-FLASH > Program.elf.xMAP
+To know where you have to jump, you cant find the memory address of the main in the xMAP file.
+
+> FLASH > Program.elf.xMAP
 
 <center>
 <img src="Images/Memory_main_jump.PNG"  width="70%"/>
 </center>
 
-### SPI commands <a id="2.4"></a>
+### SPI frames <a id="2.4"></a>
 
-### SPI Algorithm <a id="2.5"></a>
+There is the frame of the write memory command (16 bits). <br>
+The 32 bit values are divised into two 16 bits words.
+
+<center>
+<img src="Images/SPI_frame.PNG"  width="100%"/>
+</center>
+
+### SPI commands <a id="2.5"></a>
+
+> The check command don't work for now
+
+Command | Value
+--------|-------
+Write memory | 80
+Check memory | 100
+Jump | 120
+
+### SPI Algorithm <a id="2.6"></a>
 
 
 # Flash memory <a id="3"></a>
@@ -67,8 +87,12 @@ Then we have to follow a specific algorithm (P.88/89) by writing registers to ma
 ### Flash clock configuration <a id="3.2"></a>
 
 There is the configuration path of the clock. <br>
-![](Images/Clock_conf_1.PNG)
-![](Images/Clock_conf_2.PNG)
+<center>
+<img src="Images/Clock_conf_1.PNG"  width="70%"/>
+</center>
+<center>
+<img src="Images/Clock_conf_2.PNG"  width="70%"/>
+</center>
 
 There is the steps used to configure the flash clock with the frequency and the registers value at each steps.</br>
 
@@ -100,6 +124,16 @@ FCDIV|The BUSCLOCK is divided by 56| 0xC7
 ````
 
 ### Flash functions <a id="3.3"></a>
+
+#### Adress error :
+To solve the address error problem, you have to change the asm_exception_handler() function into the exeption.c with the following code :
+
+````C
+asm  __declspec(register_abi) void asm_exception_handler(void)
+{
+	addq.l		#8, sp
+}
+````
 
 Functions have been made, using commands code and algorithms, to manage the flash memory.
 
@@ -156,17 +190,31 @@ void Flash_erase(unsigned long address ){
 	FSTAT = 0x80;
 	while (!FSTAT_FCCF){}
 }
-
 ````
 
 ### Flash protection <a id="3.4"></a>
+
+````C
+	// Exemple protection
+	FPROT_FPS = 0x77; 
+	FPROT_FPOPEN = 1;
+````
 
 # User Manual <a id="4"></a>
 
 ### Build the program using CodeWarrior <a id="4.1"></a>
 
+Before building the program you want to flash, you have to configure the origin and the lenght of the flash memory.
+
+> Project_Setting > Linker_Files > Project.lcf
+
 <center>
-<img src="Images/Memory_configuration.PNG"  width="60%"/>
+<img src="Images/Memory_configuration2.PNG"  width="60%"/>
 </center>
 
+
 ### Flash the program with a Rasberry Pie <a id="4.2"></a>
+
+S19_to_BrutMemory.py : Convert the S19 into the brut memory from code.txt to BrutMemory.txt
+
+SPI.py : Send the program through SPI and jump

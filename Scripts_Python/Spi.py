@@ -97,39 +97,24 @@ def SPI_write_memory(length):
             value_from_spi.append(Value)
             print("Value sended : ", cmd)
             print("Response :", Value)
-            time.sleep(0.1)
+            time.sleep(0.01)
     cmd = 81
     msb = cmd >> 8
     lsb = cmd & 0xFF
     response = spi.xfer([msb, lsb])
             
     
-
-#SPI_send(50)
-
-SPI_write_memory(468)
-#time.sleep(1)
-#SPI_send(81)
-
-#SPI_check_memory(908)
-
-SPI_send(120)
-"""
-while i != 101 :
-    word_hex = f.read(4)
-    word_int = int(word_hex, 16)
-    value.append(word_int)
-    SPI_send(value[i
-    ], value[i-1])
-    time.sleep(0.01)
-    i += 1
-
-
-    value.append(f.read(4))
-    if not value[i] :
-        break;
-    print (value[i])
-    i += 1
-"""
-
-
+while True :
+    print("----Commands-----")
+    print("1: Write memory")
+    print("2: Jump")
+    cmd = input()
+    
+    if(cmd == "1"):
+        print("Length of 16 bits words :")
+        length = input()
+        SPI_write_memory(int(length))
+    
+    if(cmd == "2"):
+        SPI_send(120)
+        
