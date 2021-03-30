@@ -1,6 +1,22 @@
 > All the references made are from MCF51AG128RM.pdf
 
-# Context
+[**1. Context**](#1) <br>
+[**2. Bootloader**](#2) <br>
+[a. General Algorithm](#2.1) <br>
+[b.	Memory organisation](#2.2) <br>
+[c. SPI commands](#2.3) <br>
+[d. SPI Algorithm](#2.3) <br>
+[**3. Flash memory**](#3) <br>
+[a. Introduction](#3.1) <br>
+[b. Flash clock configuration](#3.2) <br>
+[c. Flash fuctions](#3.3) <br>
+[d. Flash memory protection](#3.4) <br>
+[**4. User Manual**](#4) <br>
+[a. Build the program using CodeWarrior](#4.1) <br>
+[b. Flash the program with a Rasberry Pie](#4.2) <br>
+           
+
+# Context <a id="1"></a>
 
 The aim of the projet if to reflash the IB program through the SPI.<br>
 The FEB communicate to the IB with a specific SPI protocol. We will use this protocol to trigger and transmit the programmation of the flash.
@@ -9,7 +25,9 @@ The FEB communicate to the IB with a specific SPI protocol. We will use this pro
 <img src="Images/Global_CTA.PNG"  width="60%"/>
 </center>
 
-# Bootloader
+# Bootloader <a id="2"></a>
+
+### Algorithm <a id="2.1"></a>
 
 There is the Algorigram of the bootloader. <br>
 After a reboot, the program will wait a specific SPI signal to enter in an update mode of the flash. <br>
@@ -19,14 +37,25 @@ If the SPI signal is not received, the program will jump to the application.
 <img src="Images/Algorigram_bootloader.PNG"  width="35%"/>
 </center>
 
-# Flash memory
+### Memory organisation <a id="2.2"></a>
 
-### Introduction
+<center>
+<img src="Images/Memory.PNG"  width="40%"/>
+</center>
+
+### SPI commands <a id="2.3"></a>
+
+### SPI Algorithm <a id="2.4"></a>
+
+
+# Flash memory <a id="3"></a>
+
+### Introduction <a id="3.1"></a>
 
 To manipulate the flash memory (P.86) we have to configure the flash clock between 150kHz and 200kHz (P.84). <br>
 Then we have to follow a specific algorithm (P.88/89) by writing registers to made a command.
 
-### Flash clock configuration
+### Flash clock configuration <a id="3.2"></a>
 
 There is the configuration path of the clock. <br>
 ![](Images/Clock_conf_1.PNG)
@@ -61,7 +90,7 @@ FCDIV|The BUSCLOCK is divided by 56| 0xC7
 	FCDIV_FDIV = 0x8; 
 ````
 
-### Flash functions
+### Flash functions <a id="3.3"></a>
 
 Functions have been made, using commands code and algorithms, to manage the flash memory.
 
@@ -120,3 +149,15 @@ void Flash_erase(unsigned long address ){
 }
 
 ````
+
+### Flash protection <a id="3.4"></a>
+
+# User Manual <a id="4"></a>
+
+### Build the program using CodeWarrior <a id="4.1"></a>
+
+<center>
+<img src="Images/Memory_configuration.PNG"  width="60%"/>
+</center>
+
+### Flash the program with a Rasberry Pie <a id="4.2"></a>
