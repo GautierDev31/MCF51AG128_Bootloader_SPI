@@ -42,17 +42,17 @@ If the SPI signal is not received, the program will jump to the application.
 ### Memory organisation <a id="2.2"></a>
 
 <center>
-<img src="Images/Memory.PNG"  width="40%"/>
+<img src="Images/Vecteur_sol2.PNG"  width="40%"/>
 </center>
 
 ### Jump address <a id="2.3"></a>
 
-To know where you have to jump, you cant find the memory address of the main in the xMAP file.
+To launch the uploaded program, you need to jump to the _startup address.
 
 > FLASH > Program.elf.xMAP
 
 <center>
-<img src="Images/Memory_main_jump.PNG"  width="70%"/>
+<img src="Images/Memory_jump.PNG"  width="70%"/>
 </center>
 
 ### SPI frames <a id="2.4"></a>
@@ -205,13 +205,15 @@ void Flash_erase(unsigned long address ){
 ### Build the program using CodeWarrior <a id="4.1"></a>
 
 Before building the program you want to flash, you have to configure the origin and the lenght of the flash memory.
-
+You also need to change the userram to not write into the vector section.
 > Project_Setting > Linker_Files > Project.lcf
 
 <center>
 <img src="Images/Memory_configuration2.PNG"  width="60%"/>
 </center>
-
+<center>
+<img src="Images/Code_VBR.PNG"  width="60%"/>
+</center>
 
 ### Flash the program with a Rasberry Pie <a id="4.2"></a>
 

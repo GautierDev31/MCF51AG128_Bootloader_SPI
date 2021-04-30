@@ -53,11 +53,7 @@ void Flash_erase(unsigned long address ){
 
 void main(void) {
 	DisableInterrupts; 
-	unsigned long address = 0x8000;
-	unsigned int tblvalue[] = {0x00000001, 0x00000002, 0x00000003, 0x00000004, 0x00000005};
-	unsigned int length = 5;
-	unsigned int value = 0x54454554;
-	unsigned int i = 0;
+
 	
 	// Intern clock init 
 	ICSSC = 0x70;
@@ -94,7 +90,7 @@ void main(void) {
 		SPI2C2_TXDMAE = 0; /* No transmit DMA */
 		SPI2C2_SPIMODE = 1; /* 16-bit SPI */
 		SPI2C2_SPMIE = 0; /* No SPI Match IT */
-		INTC_PL6P7 = 31; /* Remap the SPI2 interrupt */
+		//INTC_PL6P7 = 31; /* Remap the SPI2 interrupt */
 	
   for(;;) {
     //__RESET_WATCHDOG();	/* feeds the dog */

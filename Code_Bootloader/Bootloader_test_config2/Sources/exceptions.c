@@ -9,7 +9,6 @@
 #include "startcf.h"
 
 
-
 /***********************************************************************/
 /*
  *  Set NO_PRINTF to 0 in order the exceptions.c interrupt handler
@@ -69,6 +68,7 @@ asm __declspec(register_abi) void TrapHandler_printf(void) {
 
 void Flash_write_ex(unsigned long address, unsigned int value);
 void Flash_erase_ex(unsigned long address );
+void flash_ram(unsigned long address, unsigned int value);
 
 void Flash_write_ex(unsigned long address, unsigned int value){
 	unsigned long *pdst = (unsigned long *)address;
@@ -90,6 +90,11 @@ void Flash_erase_ex(unsigned long address ){
 	FCMD = 0x40; 
 	FSTAT = 0x80;
 	while (!FSTAT_FCCF){}
+}
+
+void flash_ram(unsigned long address, unsigned int value){
+	unsigned long *pdst = (unsigned long *)address;
+	*pdst = value;
 }
 
 struct ShortBits
@@ -175,16 +180,17 @@ union FIEEE754
 	unsigned char chrvalue[4];
 };
 
-
-unsigned long cpt = 0;
+unsigned long nb_value = 0;
+unsigned long cpt_vect = 0;
+unsigned long cpt = -1;
 unsigned long cmd = 0;
 unsigned long cpt_check = 0;
-unsigned long *memory_value;
-unsigned long memory_lsb;
-unsigned long memory_msb;
-unsigned long val_memory;
-unsigned long nb_value;
-unsigned long jump_address;
+unsigned long memory_value = 0;
+unsigned long memory_lsb = 0;
+unsigned long memory_msb = 0;
+unsigned long val_memory = 0;
+unsigned long jump_address = 0;
+union U_ShortCharBits spi2_rx;	
 
 
 /***********************************************************************/
@@ -414,14 +420,25 @@ asm  __declspec(register_abi) void asm_exception_handler(void)
    lea     20(sp), sp
    unlk a6
    rte
- */
+ 
+	move.w   #0x2700,sr // Disable interrupts
+	MOVE.L   #0x698, A0
+	jmp      (a0)*/
 	addq.l		#8, sp
 }
 
 __declspec(register_abi) void interrupt ITSPI2(void)
 {
+	
 
-	union U_ShortCharBits spi2_rx;
+
+/*
+	if (state_boot_spi == 1) {
+		//asm ( move.w   #0x2700,sr); // Disable interrupts
+		asm ( MOVE.L   #0x115E, A0);
+		asm ( jmp      (a0));
+	}
+	*/
 
 	
 	if(SPI2S_SPRF) /* Rx */
@@ -438,64 +455,63 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 		spi2_rx.U8[0] = SPI2DH;
 		spi2_rx.U8[1] = SPI2DL;
 		
-		if(cpt == 8163){
-			cpt = 8163;
-		}
-		
 		/* CALL SPI */
+		
+
+		
 		if (cmd == 0){
 		switch((unsigned long)spi2_rx.U16){
-		
-		// CLEAR
-		case 81:
 			
-				cpt_check = 0;
-				cmd = 0;
-				cpt = 0;
+			// CLEAR
+			case 81:
+				
+					cpt_check = 0;
+					cmd = 0;
+					cpt = 0;
+				
+				break;
 			
+			// WRITE MEMORY CALL
+			case 80:
+					cpt_check = 0;
+					cmd = 1;
+					cpt = -1;
 			break;
-		
-		// WRITE MEMORY CALL
-		case 80:
-				cpt_check = 0;
-				cmd = 1;
-				cpt = 0;
-		break;
-		
-		// CHECK MEMORY CALL
-		case 100:
-			if (cpt%2 == 1){
-				memory_lsb = *memory_value >> 16;
-				spi2_rx.U8[0] = (unsigned char)(memory_lsb >> 8);
-				spi2_rx.U8[1] =(unsigned char)(memory_lsb & 0xFF);	
-				cpt += 1;
-			}
-			else{
-				memory_msb = *memory_value & 0xFFFF;
-				spi2_rx.U8[0] = (unsigned char)(memory_msb >> 8);
-				spi2_rx.U8[1] =(unsigned char)(memory_msb & 0xFF);		
-				cpt_check += 1;
-				cpt += 1;
-
+			
+			// CHECK MEMORY CALL
+			case 100:
+				if (cpt%2 == 1){
+					memory_lsb = memory_value >> 16;
+					spi2_rx.U8[0] = (unsigned char)(memory_lsb >> 8);
+					spi2_rx.U8[1] =(unsigned char)(memory_lsb & 0xFF);	
+					cpt += 1;
 				}
-		break;
-		
-		// JUMP CALL
-		case 120:
-			cpt = 1;
-			cmd = 2;
-		break;
-		
-		case 130:
-			 asm ( move.w   #0x2700,sr); // Disable interrupts
-			 asm ( MOVE.L   #0xDBE, A0);
-			 asm ( jmp      (a0));
-		break;
+				else{
+					memory_msb = memory_value & 0xFFFF;
+					spi2_rx.U8[0] = (unsigned char)(memory_msb >> 8);
+					spi2_rx.U8[1] =(unsigned char)(memory_msb & 0xFF);		
+					cpt_check += 1;
+					cpt += 1;
 	
-		
-		default:
+					}
 			break;
-		}
+			
+			// JUMP CALL
+			case 120:
+				cpt = 1;
+				cmd = 2;
+			break;
+			
+			case 130:
+				 asm ( move.w   #0x2700,sr); // Disable interrupts
+				 asm ( MOVE.L   #0x10CE, A0);
+				 asm ( jmp      (a0));
+			break;
+		
+			
+			default:
+				break;
+			}
 		
 		}
 		/* COMMAND RUNNING */
@@ -503,28 +519,50 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 		/* COMMAND WRITE */
 		case 1 :
 			/* FIRST CALL */
-			if (cpt == 0){ // If there is no other command running
+			if (cpt == -1){
+			cpt += 1;
+
+			}
+			else if (cpt == 0){
+				nb_value = (unsigned long)spi2_rx.U16;
 				cpt += 1;
 			}
 			/* NUMBER OF VALUES TO WRITE */
 			else if (cpt == 1){
-				cpt += 1;
-				nb_value = (unsigned long)spi2_rx.U16;
+				if (cpt_vect < 230) {
+						
+						if (cpt_vect%2 == 0){
+							memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+							cpt_vect +=1;
+						}
+						else{
+							memory_msb =  (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+							val_memory = memory_msb + (memory_lsb << 16);
+							cpt_vect += 1;
+							flash_ram(0x800000 + ((cpt_vect )*2)-4, val_memory);
+
+							}
+					}
+					else {
+						memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+						cpt += 1;
+					}
+
 			}
 			/* WRITE VALUE */
 			else if(cpt > 1){
-				if (cpt%2 == 0){
+				if (cpt%2 == 1){
 					memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
 					cpt += 1;
 				}
 				else{
 					memory_msb =  (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
 					val_memory = memory_msb + (memory_lsb << 16);
-					Flash_write_ex(0xA70+cpt_check*4, val_memory);
+					Flash_write_ex(0xE10+cpt_check*4, val_memory);
 					cpt += 1;
 					cpt_check += 1;
 					}
-			if (cpt == nb_value){
+			if (cpt > nb_value){
 				cpt = 0;
 				cmd = 0;
 				cpt_check = 0;
