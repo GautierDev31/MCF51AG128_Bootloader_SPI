@@ -5,16 +5,17 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QPushButton, QLabel,QProgressBar
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
+
 import time
-import spidev
+import socket
+import codecs
 
+UDP_IP = "192.168.1.21"
+UDP_PORT = 1234
+Header = "aaaaaaaac0cc000047300101"
+Footer = "aaaaaaaa"
+#aaaaaaaac0cc00004730010103000000aaaaaaaa
 from PyQt5 import QtCore, QtGui, QtWidgets
-spi = spidev.SpiDev()
-spi.open(0, 0)
-spi.mode = 0b01
-spi.max_speed_hz = 976000
-
-TIME_LIMIT = 100
 
 def construct_trame(input) :
 
@@ -55,12 +56,10 @@ def SPI_write(self) :
     
     SPI_send(length - 115*2)
     self.cpttemp = 0
-    print(cmd)
     for i in range (int(length)):
             Brut_memory = f.read(4)
             Brut_memory_int = int(Brut_memory, 16)
             SPI_send(Brut_memory_int)
-            time.sleep(0.03)
             self.progress.setValue(i)
             self.cpttemp += 1
     SPI_send(81)
