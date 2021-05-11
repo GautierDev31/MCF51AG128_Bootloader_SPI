@@ -1,3 +1,6 @@
+# 11/05 Flasher SPI avec adaptation du protocole S19 communiquant avec le Raspberry
+# Communique avec la version V2 du bootloader
+
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QPushButton, QLabel,QProgressBar
 from PyQt5.QtGui import QIcon
