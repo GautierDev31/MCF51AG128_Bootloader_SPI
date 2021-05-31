@@ -153,8 +153,10 @@ union FIEEE754
 
 int chcksum(struct ShortBits value);
 void Flash_write_burst(unsigned long address, unsigned long tblvalue[], unsigned int length);
+void Flash_write(unsigned long address, unsigned int value);
 void Flash_erase(unsigned long address_to_erase, unsigned int length);
 void Ram_write(unsigned long address_to_write, unsigned int value);
+void load_vectors();
 
 int chcksum(struct ShortBits value){
 	int ck = 0;
@@ -177,6 +179,17 @@ int chcksum(struct ShortBits value){
 	
 	return ck;
 }
+
+void Flash_write(unsigned long address, unsigned int value){
+	unsigned long *pdst = (unsigned long *)address;
+	FSTAT_FCBEF = 1;
+	if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30;}
+	*pdst = value;
+	FCMD = 0x20; 
+	FSTAT = 0x80;
+	while (!FSTAT_FCCF){}
+}
+
 
 void Flash_write_burst(unsigned long address, unsigned long tblvalue[], unsigned int length){
 	unsigned int i;
@@ -215,6 +228,16 @@ void Ram_write(unsigned long address_to_write, unsigned int value){
 	*pdst = value;
 }
 
+void load_vectors()
+{
+	unsigned int value;
+	int i;
+	 for(i = 0; i<115; i++){
+		 unsigned long *pdst = (unsigned long *)(0x1200 + i*4);
+		 value = *pdst;
+		 Ram_write((unsigned long)(0x800000+ i*4), value);
+	 }
+}
 
 
 unsigned int length= 0;
@@ -489,13 +512,14 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 				break;
 			/* Read status */
 			case 310 :
-				status = 111;
+				status = 30;
 				spi2_tx.U16 = status;
 				break;
 			/* Jump & Launch */
 			case 700:
+				 load_vectors();
 				 asm ( move.w   #0x2700,sr); // Disable interrupts
-				 asm ( MOVE.L   #0x10CE, A0);
+				 asm ( MOVE.L   #0x16BE, A0);
 				 asm ( jmp      (a0));
 				 break;
 			
@@ -544,7 +568,8 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 						memory_msb =  (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
 						val_memory = memory_msb + (memory_lsb << 16);
 						cpt_significant_bit = 0;
-						Ram_write(address, val_memory);
+						//Ram_write(address, val_memory);
+						Flash_write(address - 8384000, val_memory);
 						cpt_words = 0;
 						length = 0;
 						cpt_significant_bit = 0;
