@@ -1,4 +1,4 @@
-# 26/05 Flasher SPI avec protocole de communication S19 adapté communicant en réseau avec la FEB
+# 31/05 Flasher SPI avec protocole de communication S19 adapté communicant en réseau avec la FEB
 # Communique avec la version V2 du Bootloader
 # Maj ajout threads avec IHM et check status
 
