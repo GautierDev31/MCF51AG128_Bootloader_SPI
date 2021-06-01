@@ -1,5 +1,6 @@
 > All the references made are from MCF51AG128RM.pdf
 
+<!--
 [**1. Context**](#1) <br>
 [**2. Bootloader**](#2) <br>
 [a. General Algorithm](#2.1) <br>
@@ -16,34 +17,54 @@
 [**4. User Manual**](#4) <br>
 [a. Build the program using CodeWarrior](#4.1) <br>
 [b. Flash the program with a Rasberry Pie](#4.2) <br>
-           
+-->           
 
-# Context <a id="1"></a>
+## Bootloader V2
 
-The aim of the projet if to reflash the MCF51AG128 program through the SPI.<br>
-In our case, the microcontroller is in a system where the BDM port is not accessible. So it is not reprogrammable through this one.
-The communication that is accessible with the microcontroller is only with the SPI. So for the microcontroller to be reprogrammable, we have to make a bootloader where data is sent in SPI<br>
+Cette version du bootloader permet d'écrire une application dans la memoire flash au travers du SPI avec contrôle des paquets.
+Le protocole de communication mis en place s’appuie sur le S19.
+
+### I - Protocole de communication
+
+#### 1. Commandes et status
+
+Commandes :
+300 : Write
+310 : Read status
+330 : Read checksum
+500 : Effacer la memoire
+700 : Lancer le programme
+
+Status :
+30 : Prêt à être flashé
+20 : Occupé (En train d'écrire ou en train d’effacer)
+10 : En processus de flash, prêt a continuer
+
+#### 2. Protocole d'écriture
+
 <center>
-<img src="Images/system.PNG"  width="60%"/>
+<img src="Images/diagramme_seq_write_bootloaderV2.PNG"  width="70%"/>
 </center>
 
-# Bootloader <a id="2"></a>
+### II - Organisation de la memoire
 
-### Algorithm <a id="2.1"></a>
-
-There is the Algorigram of the bootloader. <br>
-After a reboot, the program will wait a specific SPI signal to enter in an update mode of the flash. <br>
-If the SPI signal is not received, the program will jump to the application.
 
 <center>
-<img src="Images/Algorigram_bootloader.PNG"  width="35%"/>
+<img src="Images/Bootloader_memory.PNG"  width="70%"/>
 </center>
 
-### Memory organisation <a id="2.2"></a>
+### III - Flasher SPI
+
+### IV - Communication au travers de la FEB
 
 <center>
-<img src="Images/Vecteur_sol2.PNG"  width="40%"/>
+<img src="Images/CMD_WRITE.PNG"  width="70%"/>
 </center>
+<center>
+<img src="Images/CMD_WRITE.PNG"  width="70%"/>
+</center>
+
+### V - Checksum
 
 ### Jump address <a id="2.3"></a>
 
