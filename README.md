@@ -200,23 +200,157 @@ void Flash_erase(unsigned long address ){
 	FPROT_FPOPEN = 1;
 ````
 
-# User Manual <a id="4"></a>
+## Manuel utilisateur
 
-### Build the program using CodeWarrior <a id="4.1"></a>
+### I - Compiler une application avec CodeWarrior compatible avec le bootloader
 
-Before building the program you want to flash, you have to configure the origin and the lenght of the flash memory.
-You also need to change the userram to not write into the vector section.
-> Project_Setting > Linker_Files > Project.lcf
+Pour que l'application soit compatible avec le bootloader, il faut effectuer 3 modification avant la compilation :
+- Changement du registre VBR qui redirige les vecteurs dans la memoire RAM
+- Modifier l'origine et la taille de la memoire flash et RAM de l'application
+- Modifier l'emplacement des vecteurs
 
-<center>
-<img src="Images/Memory_configuration2.PNG"  width="60%"/>
-</center>
-<center>
-<img src="Images/Code_VBR.PNG"  width="60%"/>
-</center>
+#### 1. Registre VBR
 
-### Flash the program with a Rasberry Pie <a id="4.2"></a>
+Vous devez ajouter les deux lignes de code ci-dessous dans le fichier suivant (a partir de la ligne 191) :
+Project_Setting > Startup_Code > startcf.c
 
-S19_to_BrutMemory.py : Convert the S19 into the brut memory from code.txt to BrutMemory.txt
+!{width:50%}Code_VBR.PNG!
 
-SPI.py : Send the program through SPI and jump
+#### 2. Modification origine et taille de la memoire
+
+Vous devez modifier la taille des memoires dans le fichier ci-dessous :
+Project_Setting > Linker_Files > Project.lcf
+
+Les deux lignes a modifier se trouvent lignes 6 et 7 du fichier a l'emplacement suivant :
+!{width:50%}Memory_configuration2.PNG!
+
+Vous devez remplacer la taille des memoires par les tailles suivantes :
+````C
+   code        (RX)  : ORIGIN = 0x00001400, LENGTH = 0x0001EC00
+   userram     (RWX) : ORIGIN = 0x00800400, LENGTH = 0x00003C00 
+````
+
+#### 3. Modification de l'emplacement des vecteurs
+
+Remplacer l'emplacement des vecteurs par le code suivant (de la ligne 176 à 290) :
+Project_Headers > mcf51ag128.h
+
+````C
+/**************** interrupt vector table ****************/
+#define INITSP                          0x800000U
+#define INITPC                          0x800004U
+#define Vaccerr                         0x800008U
+#define Vadderr                         0x80000CU
+#define Viinstr                         0x800010U
+#define VReserved5                      0x800014U
+#define VReserved6                      0x800018U
+#define VReserved7                      0x80001CU
+#define Vprviol                         0x800020U
+#define Vtrace                          0x800024U
+#define Vunilaop                        0x800028U
+#define Vunilfop                        0x80002CU
+#define Vdbgi                           0x800030U
+#define VReserved13                     0x800034U
+#define Vferror                         0x800038U
+#define VReserved15                     0x80003CU
+#define VReserved16                     0x800040U
+#define VReserved17                     0x800044U
+#define VReserved18                     0x800048U
+#define VReserved19                     0x80004CU
+#define VReserved20                     0x800050U
+#define VReserved21                     0x800054U
+#define VReserved22                     0x800058U
+#define VReserved23                     0x80005CU
+#define Vspuri                          0x800060U
+#define VReserved25                     0x800064U
+#define VReserved26                     0x800068U
+#define VReserved27                     0x80006CU
+#define VReserved28                     0x800070U
+#define VReserved29                     0x800074U
+#define VReserved30                     0x800078U
+#define VReserved31                     0x80007CU
+#define Vtrap0                          0x800080U
+#define Vtrap1                          0x800084U
+#define Vtrap2                          0x800088U
+#define Vtrap3                          0x80008CU
+#define Vtrap4                          0x800090U
+#define Vtrap5                          0x800094U
+#define Vtrap6                          0x800098U
+#define Vtrap7                          0x80009CU
+#define Vtrap8                          0x8000A0U
+#define Vtrap9                          0x8000A4U
+#define Vtrap10                         0x8000A8U
+#define Vtrap11                         0x8000ACU
+#define Vtrap12                         0x8000B0U
+#define Vtrap13                         0x8000B4U
+#define Vtrap14                         0x8000B8U
+#define Vtrap15                         0x8000BCU
+#define VReserved48                     0x8000C0U
+#define VReserved49                     0x8000C4U
+#define VReserved50                     0x8000C8U
+#define VReserved51                     0x8000CCU
+#define VReserved52                     0x8000D0U
+#define VReserved53                     0x8000D4U
+#define VReserved54                     0x8000D8U
+#define VReserved55                     0x8000DCU
+#define VReserved56                     0x8000E0U
+#define VReserved57                     0x8000E4U
+#define VReserved58                     0x8000E8U
+#define VReserved59                     0x8000ECU
+#define VReserved60                     0x8000F0U
+#define Vunsinstr                       0x8000F4U
+#define VReserved62                     0x8000F8U
+#define VReserved63                     0x8000FCU
+#define Virq                            0x800100U
+#define Vlvd                            0x800104U
+#define VReserved66                     0x800108U
+#define VReserved67                     0x80010CU
+#define Vdmach0                         0x800110U
+#define Vdmach1                         0x800114U
+#define Vdmach2                         0x800118U
+#define Vdmach3                         0x80011CU
+#define Vieventch0                      0x800120U
+#define Vftm1fault_ovf                  0x800124U
+#define Vftm1ch0                        0x800128U
+#define Vftm1ch1                        0x80012CU
+#define Vftm1ch2                        0x800130U
+#define Vftm1ch3                        0x800134U
+#define Vftm1ch4                        0x800138U
+#define Vftm1ch5                        0x80013CU
+#define Vftm2fault_ovf                  0x800140U
+#define Vftm2ch0                        0x800144U
+#define Vftm2ch1                        0x800148U
+#define Vftm2ch2                        0x80014CU
+#define Vftm2ch3                        0x800150U
+#define Vftm2ch4                        0x800154U
+#define Vftm2ch5                        0x800158U
+#define Vtpm3ovf                        0x80015CU
+#define Vtpm3ch0                        0x800160U
+#define Vtpm3ch1                        0x800164U
+#define Vadc                            0x800168U
+#define Vhscmp1                         0x80016CU
+#define Vhscmp2                         0x800170U
+#define Vieventch1                      0x800174U
+#define Vspi1                           0x800178U
+#define Vspi2                           0x80017CU 
+#define Vsci1err                        0x800180U
+#define Vsci1rx                         0x800184U
+#define Vsci1tx                         0x800188U
+#define Viic                            0x80018CU
+#define Vieventch2                      0x800190U
+#define Vsci2err                        0x800194U
+#define Vsci2rx                         0x800198U
+#define VL7swi                          0x80019CU
+#define VL6swi                          0x8001A0U
+#define VL5swi                          0x8001A4U
+#define VL4swi                          0x8001A8U
+#define VL3swi                          0x8001ACU
+#define VL2swi                          0x8001B0U
+#define VL1swi                          0x8001B4U
+#define Vsci2tx                         0x8001B8U
+#define Vportae                         0x8001BCU
+#define Vportfj                         0x8001C0U
+#define Vrtc_wdg                        0x8001C4U
+#define Vieventch3                      0x8001C8U
+````
+
