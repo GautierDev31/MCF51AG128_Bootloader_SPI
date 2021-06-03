@@ -49,11 +49,12 @@ Status : <br>
 30 : Vous avez la main sur le bootloader. Prêt a lancer l'application ou Jumper <br>
 20 : Occupé (En train d'écrire ou en train d’effacer) <br>
 10 : En processus de flash, prêt a continuer <br>
+5 : Erreur lors de l'écriture : zone memoire protege
 
 #### 2. Protocole d'écriture
 
 <center>
-<img src="Images/diagramme_seq_write_bootloaderV2.PNG"  width="70%"/>
+<img src="Images/diagramme_seq_write_bootloaderV3.0.PNG"  width="70%"/>
 </center>
 
 ### II - Organisation de la memoire
