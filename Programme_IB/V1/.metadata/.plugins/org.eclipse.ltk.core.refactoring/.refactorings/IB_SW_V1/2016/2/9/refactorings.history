@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;IB_SW_V1/Project_Headers/conf_HW&apos; to &apos;conf_HW.h&apos;" description="Rename resource &apos;conf_HW&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Project_Headers/conf_HW" name="conf_HW.h" stamp="1456391194660" updateReferences="true"/>
-</session>
