@@ -364,20 +364,19 @@
   000004BE 00000210 .text   clear_mem	(startcf_c.obj)
   000006CE 0000009A .text   _startup	(startcf_c.obj)
   00000768 0000002A .text   Flash_clock_init	(main_c.obj)
-  00000792 000000F2 .text   main	(main_c.obj)
-  00000884 0000018C .text   chcksum	(exceptions_c.obj)
-  00000A10 0000006E .text   Flash_write	(exceptions_c.obj)
-  00000A7E 000000B4 .text   Flash_write_burst	(exceptions_c.obj)
-  00000B32 000000B0 .text   Flash_erase	(exceptions_c.obj)
-  00000BE2 00000056 .text   load_vectors	(exceptions_c.obj)
-  00000C38 00000002 .text   asm_exception_handler	(exceptions_c.obj)
-  00000C3A 00000402 .text   ITSPI2	(exceptions_c.obj)
-  0000103C 0000001A .text   __initialize_hardware	(exceptions_c.obj)
-  00001056 0000000C .text   _ewl_exit	(librt.a abort_exit.o   )
-  00001062 0000001C .text   __call_static_initializers	(librt.a cf_staticinitia)
-  0000107E 0000002C .text   __destroy_global_chain	(librt.a cf_staticinitia)
-#>000010AC          ___ROM_AT (linker command file)
-#>000010AC          ___DATA_ROM (linker command file)
+  00000792 00000110 .text   main	(main_c.obj)
+  000008A2 0000018C .text   chcksum	(exceptions_c.obj)
+  00000A2E 000000A2 .text   Flash_write	(exceptions_c.obj)
+  00000AD0 000000E8 .text   Flash_write_burst	(exceptions_c.obj)
+  00000BB8 00000056 .text   load_vectors	(exceptions_c.obj)
+  00000C0E 00000002 .text   asm_exception_handler	(exceptions_c.obj)
+  00000C10 00000422 .text   ITSPI2	(exceptions_c.obj)
+  00001032 0000001A .text   __initialize_hardware	(exceptions_c.obj)
+  0000104C 0000000C .text   _ewl_exit	(librt.a abort_exit.o   )
+  00001058 0000001C .text   __call_static_initializers	(librt.a cf_staticinitia)
+  00001074 0000002C .text   __destroy_global_chain	(librt.a cf_staticinitia)
+#>000010A0          ___ROM_AT (linker command file)
+#>000010A0          ___DATA_ROM (linker command file)
 
 # .data
 #>00800400          ___DATA_RAM (linker command file)
@@ -429,10 +428,10 @@
 #>00000010          ___stack_safety (linker command file)
 #>00800DCC          __SP_INIT (linker command file)
 #>00800DCC          ___SP_AFTER_RESET (linker command file)
-#>000010B4          _romp_at (linker command file)
+#>000010A8          _romp_at (linker command file)
 
 # .romp
-#>000010B4          __S_romp (linker command file)
+#>000010A8          __S_romp (linker command file)
 
 
 # Memory map:
@@ -553,12 +552,12 @@
   000001C4 000001C4 00000004 .abs_vector_113 abs_vector_113
   000001C8 000001C8 00000004 .abs_vector_114 abs_vector_114
   00000410 00000410 00000000 .code      code
-  00000410 00000410 00000C9C .text      code
+  00000410 00000410 00000C90 .text      code
   00800400 00800400 00000000 .userram   userram
-  00800400 000010AC 00000008 .data      userram
+  00800400 000010A0 00000008 .data      userram
   00800408 00800408 000001C4 .bss       userram
   008005CC 008005CC 00000000 .custom    userram
-  008005CC 000010B4 00000018 .romp      userram
+  008005CC 000010A8 00000018 .romp      userram
 
-# Link start time: Mon May 31 11:12:11 2021
-# Link end time: Mon May 31 11:12:11 2021
+# Link start time: Wed Jun 02 12:31:56 2021
+# Link end time: Wed Jun 02 12:31:56 2021

@@ -17,9 +17,12 @@ void main(void) {
 
 	// Intern clock init 
 	ICSSC = 0x70;
-		
-	
 	Flash_clock_init();
+	
+	//Memory protection
+	FPROT_FPS = 0x7C; 
+	FPROT_FPOPEN = 1;
+	
 	EnableInterrupts;
 	/*************************************SPI2 CONFIGURATION******************************************************************************/
 	SCGC2_SPI2 = 1;	/* clock gating */

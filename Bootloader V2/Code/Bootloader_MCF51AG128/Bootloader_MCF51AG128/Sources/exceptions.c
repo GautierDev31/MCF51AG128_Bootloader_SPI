@@ -158,6 +158,9 @@ void Flash_erase(unsigned long address_to_erase, unsigned int length);
 void Ram_write(unsigned long address_to_write, unsigned int value);
 void load_vectors();
 
+unsigned int status = 30; // Status which will be read by the flasher
+
+
 int chcksum(struct ShortBits value){
 	int ck = 0;
 	if (value.bit0 == 1) { ck += 1;}
@@ -182,18 +185,26 @@ int chcksum(struct ShortBits value){
 
 void Flash_write(unsigned long address, unsigned int value){
 	unsigned long *pdst = (unsigned long *)address;
+	status = 20;
 	FSTAT_FCBEF = 1;
 	if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30;}
 	*pdst = value;
 	FCMD = 0x20; 
 	FSTAT = 0x80;
 	while (!FSTAT_FCCF){}
+	if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
+		status = 5;
+	}
+	else {
+		status = 10;
+	}
 }
 
 
 void Flash_write_burst(unsigned long address, unsigned long tblvalue[], unsigned int length){
 	unsigned int i;
 	unsigned long *pdst;
+	status = 20;
 	asm { move.w SR,D0; ori.l #0x0700,D0; move.w D0,SR;  }
 	for (i = 0; i<length; i++){
 		pdst = (unsigned long *)(address + 4*i);
@@ -205,22 +216,35 @@ void Flash_write_burst(unsigned long address, unsigned long tblvalue[], unsigned
 		while (!FSTAT_FCCF){}
 	}
 	asm { move.w SR,D0; andi.l #0xF8FF,D0; move.w D0,SR;  }
+	if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
+		status = 5;
+	}
+	else {
+		status = 10;
+	}
 }
 
 void Flash_erase(unsigned long address_to_erase, unsigned int length ){
-	unsigned int value = 0xFFFFFFFF;
-	int i ;
-	asm { move.w SR,D0; ori.l #0x0700,D0; move.w D0,SR;  }
-	for (i = 0; i < length; i++){
-		unsigned long *pdst = (unsigned long *)(address_to_erase + 4*i);
+	unsigned int i;
+	unsigned long *pdst;
+	status = 20;
+	//asm { move.w SR,D0; ori.l #0x0700,D0; move.w D0,SR;  }
+	for (i = 0; i<length; i++){
+		pdst = (unsigned long *)(address_to_erase + 4*i);
 		FSTAT_FCBEF = 1;
-		if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30; }
-		*pdst = value;
-		FCMD = 0x80; 
+		if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30;}
+		*pdst = 0x4;
+		FCMD = 0x40; 
 		FSTAT = 0x80;
 		while (!FSTAT_FCCF){}
 	}
-	asm { move.w SR,D0; andi.l #0xF8FF,D0; move.w D0,SR;  }
+	//asm { move.w SR,D0; andi.l #0xF8FF,D0; move.w D0,SR;  }
+	if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
+		status = 5;
+	}
+	else {
+		status = 10;
+	}
 }
 
 void Ram_write(unsigned long address_to_write, unsigned int value){
@@ -233,7 +257,7 @@ void load_vectors()
 	unsigned int value;
 	int i;
 	 for(i = 0; i<115; i++){
-		 unsigned long *pdst = (unsigned long *)(0x1200 + i*4);
+		 unsigned long *pdst = (unsigned long *)(0x1800 + i*4);
 		 value = *pdst;
 		 Ram_write((unsigned long)(0x800000+ i*4), value);
 	 }
@@ -248,7 +272,6 @@ unsigned long address;
 unsigned int cpt_words = 0;
 unsigned int cpt_significant_bit = 0;
 int state_running = 0; // 1 if writing
-unsigned int status = 10; // Status which will be read by the flasher
 unsigned int cpt_reading = 0;
 unsigned long checksum = 0;
 int state_writing = 0; 
@@ -518,8 +541,10 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 			/* Jump & Launch */
 			case 700:
 				 load_vectors();
+				 FPROT_FPS = 0x7B; 
+				 FPROT_FPOPEN = 1;
 				 asm ( move.w   #0x2700,sr); // Disable interrupts
-				 asm ( MOVE.L   #0x16BE, A0);
+				 asm ( MOVE.L   #0x22BE, A0);
 				 asm ( jmp      (a0));
 				 break;
 			
@@ -547,8 +572,12 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 				memory_msb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
 				address = memory_msb + (memory_lsb << 16);
 				if (address < 0x800000){
-					Flash_erase(address, length);
+					//Flash_erase(address, length);
+					status = 10;
 				} 
+				else {
+					status = 10;
+				}
 				cpt_significant_bit = 0;
 				state_writing = 10;
 			}
@@ -569,7 +598,7 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 						val_memory = memory_msb + (memory_lsb << 16);
 						cpt_significant_bit = 0;
 						//Ram_write(address, val_memory);
-						Flash_write(address - 8384000, val_memory);
+						Flash_write(address - 8382464, val_memory); //Beginning 1800
 						cpt_words = 0;
 						length = 0;
 						cpt_significant_bit = 0;
@@ -675,15 +704,6 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 		}
 	
 } // End SPI INT
-
-
-
-
-
-
-
-
-
 
 
 typedef void (* vectorTableEntryType)(void);
