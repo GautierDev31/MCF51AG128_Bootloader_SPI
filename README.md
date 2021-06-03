@@ -19,20 +19,21 @@
 [b. Flash the program with a Rasberry Pie](#4.2) <br>
 -->           
 
-# Bootloader V2.1
+# Bootloader V3.0
 
 Cette version du bootloader permet d'écrire une application dans la memoire flash au travers du SPI avec contrôle des paquets.
 Le protocole de communication mis en place s’appuie sur le S19.
 
-Améliorations par rapport a la version V2:
+Améliorations par rapport a la version V2.2:
+- Changement du protocole de communication et des commandes reseaux
+- Modification de l'algorithme pour s'adapter aux nouvelles commandes reseaux
+- Protection de la memoire flash (Bootloader + Vecteurs application)
+- Amelioration des codes status
+
+Améliorations par rapport a la version V2.0:
 - Sauvegarde des vecteurs dans la memoire flash
 - Chargement des vecteurs à chaque lancement de l'application
 
-Note commande read status : <br>
-La gestion du read status n'est pas complète (pas de passage a l'état "busy"). <br>
-Le bootloader renvoie bien :<br>
-30 : Prêt à recevoir une commande<br>
-10 : Bon déroulement de l'écriture (Uniquement lors d'un processus de reflash)<br>
 
 ### I - Protocole de communication
 
@@ -72,7 +73,7 @@ Status : <br>
 <img src="Images/CMD_WRITE.PNG"  width="70%"/>
 </center>
 <center>
-<img src="Images/CMD_WRITE.PNG"  width="70%"/>
+<img src="Images/CMD_IDEAL.PNG"  width="70%"/>
 </center>
 
 ### V - Checksum
