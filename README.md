@@ -104,8 +104,8 @@ Les deux lignes a modifier se trouvent lignes 6 et 7 du fichier a l'emplacement 
 
 Vous devez remplacer la taille des memoires par les tailles suivantes :
 ````C
-   code        (RX)  : ORIGIN = 0x00001400, LENGTH = 0x0001EC00
-   userram     (RWX) : ORIGIN = 0x00800400, LENGTH = 0x00003C00 
+   code        (RX)  : ORIGIN = 0x00002000, LENGTH = 0x0001E000
+   userram     (RWX) : ORIGIN = 0x00800400, LENGTH = 0x00003C00
 ````
 
 #### 3. Modification de l'emplacement des vecteurs
