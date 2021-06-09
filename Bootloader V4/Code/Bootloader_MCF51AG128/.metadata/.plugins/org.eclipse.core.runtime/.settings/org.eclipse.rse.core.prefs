@@ -1,0 +1,4 @@
+activeuserprofiles=IRAP_CTA-PC;Team
+eclipse.preferences.version=1
+org.eclipse.rse.systemtype.local.systemType.defaultUserId=IRAP_CTA
+useridperkey=IRAP_CTA-PC.Bootloader_MCF51AG128_FLASH_PnE U-MultiLink Target\=IRAP_CTA;IRAP_CTA-PC.Local\=IRAP_CTA;IRAP_CTA-PC.Bootloader_MCF51AG128_FLASH_PnE U-MultiLink\=IRAP_CTA;

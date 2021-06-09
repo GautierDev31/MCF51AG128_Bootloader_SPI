@@ -1,0 +1,13 @@
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0x1200/org.eclipse.debug.ui.MemoryView.RenderingViewPane.1/org.eclipse.debug.ui.rendering.hexint/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0x1200/org.eclipse.debug.ui.MemoryView.RenderingViewPane.2/org.eclipse.cdt.debug.ui.memory.traditional.TraditionalRendering/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0x1800/org.eclipse.debug.ui.MemoryView.RenderingViewPane.1/org.eclipse.debug.ui.rendering.hexint/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0x1800/org.eclipse.debug.ui.MemoryView.RenderingViewPane.2/org.eclipse.cdt.debug.ui.memory.traditional.TraditionalRendering/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0x2000/org.eclipse.debug.ui.MemoryView.RenderingViewPane.1/org.eclipse.debug.ui.rendering.hexint/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0x2000/org.eclipse.debug.ui.MemoryView.RenderingViewPane.2/org.eclipse.cdt.debug.ui.memory.traditional.TraditionalRendering/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0x800000/org.eclipse.debug.ui.MemoryView.RenderingViewPane.1/org.eclipse.debug.ui.rendering.hexint/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0x800000/org.eclipse.debug.ui.MemoryView.RenderingViewPane.2/org.eclipse.cdt.debug.ui.memory.traditional.TraditionalRendering/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0xa070/org.eclipse.debug.ui.MemoryView.RenderingViewPane.1/org.eclipse.debug.ui.rendering.hexint/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0xa070/org.eclipse.debug.ui.MemoryView.RenderingViewPane.2/org.eclipse.cdt.debug.ui.memory.traditional.TraditionalRendering/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0xe10/org.eclipse.debug.ui.MemoryView.RenderingViewPane.1/org.eclipse.debug.ui.rendering.hexint/index=0
+RENDERINGS/Bootloader_MCF51AG128_FLASH_PnE\ U-MultiLink/0xe10/org.eclipse.debug.ui.MemoryView.RenderingViewPane.2/org.eclipse.cdt.debug.ui.memory.traditional.TraditionalRendering/index=0
+eclipse.preferences.version=1
