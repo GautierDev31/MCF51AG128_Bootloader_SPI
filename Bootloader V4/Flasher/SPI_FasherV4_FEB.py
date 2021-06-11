@@ -498,6 +498,7 @@ class App(QWidget):
         self.net.Send_one_word(700, 1)
         self.net.Send_one_word(address_msb, 1)
         self.net.Send_one_word(address_lsb, 1)
+        print("----- Launch Application -----")
 
     def on_click_read(self):
         address = self.textbox_address.text()

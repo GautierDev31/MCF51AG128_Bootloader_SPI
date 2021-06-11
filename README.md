@@ -19,55 +19,56 @@
 [b. Flash the program with a Rasberry Pie](#4.2) <br>
 -->           
 
-# Bootloader V3.0
 
-Cette version du bootloader permet d'écrire une application dans la memoire flash au travers du SPI avec contrôle des paquets.
-Le protocole de communication mis en place s’appuie sur le S19.
+[**I - Bootloader V4.0**](#1) <br>
+[**1. Commandes**](#1.1)<br>
+[**2. Flasher SPI**](#1.2)<br>
+[**3. Commande réseaux FEB**](#1.3)<br>
+[**4. Organisation de la memoire MCF51AG128**](#1.4)<br>
+[**5. Checksum**](#1.5)<br>
+[**II - Manuel Utilisateur**](#2)<br>
+[**1. Utilisation du Flasher SPI**](#)<br>
+[**2. Compiler une application avec CodeWarrior compatible avec le bootloader**](#)<br>
+<br>
+Documentation Technique MCF51AG128<br>
+[**III. Flash memory MCF51AG128**](#3) <br>
+[a. Introduction](#3.1) <br>
+[b. Flash clock configuration](#3.2) <br>
+[c. Flash fuctions](#3.3) <br>
+[d. Flash memory protection](#3.4) <br>
 
-Améliorations par rapport a la version V2.2:
-- Changement du protocole de communication et des commandes reseaux
-- Modification de l'algorithme pour s'adapter aux nouvelles commandes reseaux
-- Protection de la memoire flash (Bootloader + Vecteurs application)
-- Amelioration des codes status
 
-Améliorations par rapport a la version V2.0:
-- Sauvegarde des vecteurs dans la memoire flash
-- Chargement des vecteurs à chaque lancement de l'application
+# Bootloader V4.0 <a id="1"></a>
+
+### 1 - Commandes<a id="1.1"></a>
+
+Nom | Commande | Nb de mots | Description
+----|--------|------------|-------------
+Save_memory_sector | 300 |N | Command + Address MSB + Address LSB + Length + Word MSB[N] + Word LSB[N]
+Erase_flash_sector | 305 |4 | Command + Address MSB + Address LSB + Length
+Flash_memory_sector | 310 |1 |Command 
+Read_memory_word | 400 |5 | Command + Address MSB + Address LSB with Read msb + Read lsb*
+Read_status | 410 |2 | Command + Read*
+Read_checksum |420 |2 | Command + Read*
+Load_vectors|600| 1 | Command
+Jump | 700 |3 | Command + Address MSB + Address LSB
+
+*N'importe quelle valeur possible car c'est la valeur lu qui va être importante.
 
 
-### I - Protocole de communication
+### 4 - Flasher SPI
 
-#### 1. Commandes et status
+### 3 -Commande réseaux FEB
 
-Commandes :<br>
-300 : Write <br>
-310 : Read status <br>
-330 : Read checksum <br>
-500 : Effacer la memoire <br>
-700 : Lancer le programme <br>
 
-Status : <br>
-30 : Vous avez la main sur le bootloader. Prêt a lancer l'application ou Jumper <br>
-20 : Occupé (En train d'écrire ou en train d’effacer) <br>
-10 : En processus de flash, prêt a continuer <br>
-5 : Erreur lors de l'écriture : zone memoire protege
-
-#### 2. Protocole d'écriture
-
-<center>
-<img src="Images/diagramme_seq_write_bootloaderV3.0.PNG"  width="70%"/>
-</center>
-
-### II - Organisation de la memoire
+### 2 - Organisation de la memoire
 
 
 <center>
 <img src="Images/Bootloader_memory.PNG"  width="70%"/>
 </center>
 
-### III - Flasher SPI
-
-### IV - Communication au travers de la FEB
+### 4 - Communication au travers de la FEB
 
 <center>
 <img src="Images/CMD_WRITE.PNG"  width="70%"/>
@@ -80,7 +81,63 @@ Status : <br>
 
 ## Manuel utilisateur
 
-### I - Compiler une application avec CodeWarrior compatible avec le bootloader
+### I - Utilisation du Flasher SPI
+
+> Ce protocole est dédier à linux <br>
+> Vous devez avoir une version de python 3
+
+Si PyQt5 n'est pas installé sur votre ordianteur :
+````console
+$ pip3 install PyQt5
+````
+
+Lancer l'application :
+````console
+$ python3 SPI_FasherV4_FEB.py
+````
+<br>
+
+Une fois lancé, selectionnez le fichier S19 compatible avec le bootloader en cliquant sur "Select File".<br>
+Pour voir comment compiler un programme compatible avec le bootloader, referez vous au chapitre suivant.
+![Flasher File1](Images/Manual_Flasher/Flasher_file1.PNG)
+![Flasher File2](Images/Manual_Flasher/Flasher_file2.PNG)
+
+<br>
+
+> Attention ! Avant de lancer le reflash de la carte votre FEB doit être initialisé. <br>
+> Cependant toute application communiquant avec la FEB comme qNectarCam doivent être fermés.
+
+<br>
+
+Pour verifier que la FEB et le flasher soit bien initialisés et en communication avec l'IB, cliquez sur le bouton "Check status". <br>
+Le code réponse retourné dans la console doit être "10". <br>
+![Check Status](Images/Manual_Flasher/check_status.PNG)
+
+Lancez le reflash de la carte en cliquant sur "Flash memory".<br>
+Une barre de progression vas se lancer et les boutons "Flash memory" et "Launch program" ne seront plus accessible pour evitez toute erreur.<br>
+<br>
+Il se peut que votre version du flasher n'affiche pas 100% mais 99% à la fin d'un reflash, 
+pour être sûr que le transfert soit terminé regardez sur la console qu'il y ai le message de fin de transfert.
+
+![Flasher Launched](Images/Manual_Flasher/Flasher_launched.PNG)
+<br>
+Message de fin de transfert sur la console : <br>
+![End](Images/Manual_Flasher/end.PNG)
+<br>
+Pour lancer le programme, appuyez sur "Unlock"
+![Flasher Launched2](Images/Manual_Flasher/Flasher_launched2.PNG)
+
+Avant de lancer l'application vous devez être sûr de l'addresse de lancement.<br>
+Pour la trouver vous devrez ouvrir le fichier S19 et regarder le numero d'addresse entouré en rouge a la dernière ligne.<br>
+Reportez cette addresse dans la textbox au niveau de "Lauch program"
+![S19 Address](Images/Manual_Flasher/S19_address.PNG)
+![Flasher Launched4](Images/Manual_Flasher/Flasher_launched4.PNG)
+
+<br>
+
+Enfin, cliquez sur "Launch Program" pour lancer l'application.
+
+### II - Compiler une application avec CodeWarrior compatible avec le bootloader
 
 Pour que l'application soit compatible avec le bootloader, il faut effectuer 3 modification avant la compilation :
 - Changement du registre VBR qui redirige les vecteurs dans la memoire RAM
@@ -232,7 +289,7 @@ Project_Headers > mcf51ag128.h
 #define Vieventch3                      0x8001C8U
 ````
 
-# Annexes
+# Documentation technique MCF51AG128
 
 ## Flash memory <a id="3"></a>
 
