@@ -27,8 +27,8 @@
 [**4. Organisation de la memoire MCF51AG128**](#1.4)<br>
 [**5. Checksum**](#1.5)<br>
 [**II - Manuel Utilisateur**](#2)<br>
-[**1. Utilisation du Flasher SPI**](#)<br>
-[**2. Compiler une application avec CodeWarrior compatible avec le bootloader**](#)<br>
+[**1. Utilisation du Flasher SPI**](#2.1)<br>
+[**2. Compiler une application avec CodeWarrior compatible avec le bootloader**](#2.2)<br>
 <br>
 Documentation Technique MCF51AG128<br>
 [**III. Flash memory MCF51AG128**](#3) <br>
@@ -56,20 +56,9 @@ Jump | 700 |3 | Command + Address MSB + Address LSB
 *N'importe quelle valeur possible car c'est la valeur lu qui va être importante.
 
 
-### 4 - Flasher SPI
+### 2 - Flasher SPI<a id="1.2"></a>
 
-### 3 -Commande réseaux FEB
-
-
-### 2 - Organisation de la memoire
-
-
-<center>
-<img src="Images/Bootloader_memory.PNG"  width="70%"/>
-</center>
-
-### 4 - Communication au travers de la FEB
-
+### 3 - Commande réseaux FEB<a id="1.3"></a>
 <center>
 <img src="Images/CMD_WRITE.PNG"  width="70%"/>
 </center>
@@ -77,11 +66,17 @@ Jump | 700 |3 | Command + Address MSB + Address LSB
 <img src="Images/CMD_IDEAL.PNG"  width="70%"/>
 </center>
 
-### V - Checksum
+### 4 - Organisation de la memoire<a id="1.4"></a>
+
+<center>
+<img src="Images/Bootloader_memory.PNG"  width="70%"/>
+</center>
+
+### 5 - Checksum<a id="1.5"></a>
 
 ## Manuel utilisateur
 
-### I - Utilisation du Flasher SPI
+### I - Utilisation du Flasher SPI <a id="2.1"></a>
 
 > Ce protocole est dédier à linux <br>
 > Vous devez avoir une version de python 3
@@ -137,7 +132,7 @@ Reportez cette addresse dans la textbox au niveau de "Lauch program"
 
 Enfin, cliquez sur "Launch Program" pour lancer l'application.
 
-### II - Compiler une application avec CodeWarrior compatible avec le bootloader
+### II - Compiler une application avec CodeWarrior compatible avec le bootloader<a id="2.2"></a>
 
 Pour que l'application soit compatible avec le bootloader, il faut effectuer 3 modification avant la compilation :
 - Changement du registre VBR qui redirige les vecteurs dans la memoire RAM
