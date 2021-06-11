@@ -1,4 +1,4 @@
-# 07/05 Flasher SPI avec protocole de communication S19 adapté communicant en réseau avec la FEB
+# 07/06 Flasher SPI avec protocole de communication S19 adapté communicant en réseau avec la FEB
 # Code et protocole de communication (README.md) : https://github.com/GautierDev31/MCF51AG128_Bootloader_SPI
 
 import sys
@@ -208,7 +208,7 @@ class Send_network (QThread, threading.Thread):
 
         UDP_IP = "192.168.1.21"
         UDP_PORT = 1234
-        time.sleep(0.03)
+        time.sleep(0.005)
         print ("Send : " + str(input))
         MESSAGE = self.construct_trame(str(input), type)
         sock = socket.socket(socket.AF_INET, # Internet
