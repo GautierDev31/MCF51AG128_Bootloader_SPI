@@ -149,17 +149,15 @@ Pour que l'application soit compatible avec le bootloader, il faut effectuer 3 m
 Vous devez ajouter les deux lignes de code ci-dessous dans le fichier suivant (a partir de la ligne 191) :
 Project_Setting > Startup_Code > startcf.c
 
-!{width:50%}Code_VBR.PNG!
+
+![Code V B R](Images/Code_VBR.PNG)
 
 #### 2. Modification origine et taille de la memoire
 
 Vous devez modifier la taille des memoires dans le fichier ci-dessous :
 Project_Setting > Linker_Files > Project.lcf
 
-Les deux lignes a modifier se trouvent lignes 6 et 7 du fichier a l'emplacement suivant :
-!{width:50%}Memory_configuration2.PNG!
-
-Vous devez remplacer la taille des memoires par les tailles suivantes :
+Les deux lignes a modifier se trouvent lignes 6 et 7 du fichier a l'emplacement suivant : <bR>
 ````C
    code        (RX)  : ORIGIN = 0x00002000, LENGTH = 0x0001E000
    userram     (RWX) : ORIGIN = 0x00800400, LENGTH = 0x00003C00
