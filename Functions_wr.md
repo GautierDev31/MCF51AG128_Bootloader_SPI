@@ -5,10 +5,16 @@ Pour manipuler la memoire flash, il faut dans un premier temps initialiser la cl
 Il est probable que lorsque l'on essaie d'écrire dans la flash, le microcontroleur se bloque et tourne en boucle
 dans une fonction d'erreur.
 Lorsque le programme tourne en mode débug avec code warrior, soit le programme se bloque et affiche une erreur,
-soit losque que l'on met sur pause on se retrouve a des endroits aléatoires du code.
+soit lorsque que l'on met sur pause on se retrouve a des endroits aléatoires du code.
 Il est possible de pallier a ce problème en modifiant quelques lignes de code (voir paragraphe plus bas).
 
 Note : La fonction Flash_read() n'a pas été testé et peut être amélioré en fonction du besoin.
+
+#### Zone mémoire
+Seule une partie de la memoire flash pourra être réécrite car non protégé.
+2KB sont disponnible à la fin de la memoire flash :<br>
+De l'adresse 0x1F800 à 0x20000.
+
 
 #### Initialisation de la clock pour manipuler la memoire flash
 
@@ -81,7 +87,7 @@ asm __declspec(register_abi) void _startup(void) //Entête de la fonction a modif
 #### Debug Result
 
 Voici ce que l'on obtient dans la memoire visible dans le debugger lorsque l'on écrit 
-dans la flash (après avoir msi sur pause) :
+dans la flash (après avoir mis sur pause) :
 
 <center>
 <img src="Images/Result_write.PNG"/>
