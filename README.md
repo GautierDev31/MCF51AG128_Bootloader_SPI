@@ -42,11 +42,13 @@ Documentation Technique MCF51AG128<br>
 
 ### 1 - Commandes<a id="1.1"></a>
 
+Les diagrammes de séquences sont en annexe.
+
 Nom | Commande | Nb de mots | Description
 ----|--------|------------|-------------
-Save_memory_sector | 300 |N | Command + Address MSB + Address LSB + Length + Word MSB[N] + Word LSB[N]
-Erase_flash_sector | 305 |4 | Command + Address MSB + Address LSB + Length
-Flash_memory_sector | 310 |1 |Command 
+Save_memory_sector (in RAM) | 300 |N | Command + Lenght + Address MSB + Address LSB + Word MSB[N] + Word LSB[N]
+Erase_flash_sector (non dev) (1kb) | 305 |4 | Command + Address MSB + Address LSB 
+Flash_saved_memory | 310 |1 |Command 
 Read_memory_word | 400 |5 | Command + Address MSB + Address LSB with Read msb + Read lsb*
 Read_status | 410 |2 | Command + Read*
 Read_checksum |420 |2 | Command + Read*
@@ -405,3 +407,16 @@ void Flash_erase(unsigned long address ){
 	FPROT_FPS = 0x77; 
 	FPROT_FPOPEN = 1;
 ````
+
+# Annexes
+
+## Diagrammes de séquences : Commandes
+
+![D S Save Memory](Images/Sequence_diagrams/DS_Save_memory.PNG)
+![D S Erase Sector](Images/Sequence_diagrams/DS_Erase_sector.PNG)
+![D S Flash Saved Memory](Images/Sequence_diagrams/DS_Flash_saved_memory.PNG)
+![D S Read Memory Word](Images/Sequence_diagrams/DS_Read_memory_word.PNG)
+![D S Read Status](Images/Sequence_diagrams/DS_Read_status.PNG)
+![D S Read Checksum](Images/Sequence_diagrams/DS_Read_checksum.PNG)
+![D S Load Vectors](Images/Sequence_diagrams/DS_Load_vectors.PNG)
+![D S Jump](Images/Sequence_diagrams/DS_Jump.PNG)
