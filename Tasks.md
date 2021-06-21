@@ -4,13 +4,12 @@
 - Proposer un diagramme de séquence pour le Flasher SPI pour le LPNHE
 - Definir les sécurités enlevés (Documentation) et voir si on peut les réduires
 - Suivre les tests fait par Adellain
+- Faire fichier S19 avec Bootloader + application
 - Documentation
 - Rapport de stage & Oral
 
 ### Objectifs prévisibles pour Octobre :
-- Réalisation d'une librairie et d'un soft de test pour le microcontroleur MCF51AG : \
-Faire une fonction pouvant être inclus en tant que librairie qui propose une fonction retournant l'état d'un registre après interrogation en SPI. Ce soft pourra être utiliser pour les tests du bootloader et pour l'application.
-Environ 10 jours de developpement et 5 jours de tests (du software)
+
 - Réalisation d'un soft de test complémentaire du Flasher SPI pour éprouver la communication et le reflash
 Enfiron 10 jours de developpement et 5 jours de tests (du Flasher)
 - Aide de l'intégration du software avec le LPNHE & Tests
