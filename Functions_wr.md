@@ -93,3 +93,95 @@ dans la flash (après avoir mis sur pause) :
 <img src="Images/Result_write.PNG"/>
 </center>
 
+
+````C
+#include<string.h>
+typedef void (*PFnCmdInRam)(byte Comand_);
+#define BM_FLASH_ERR_MASK   0x30U  
+volatile far word SR_reg;              /* Current CCR register */
+
+typedef struct {
+  byte code[0x32];                     /* Structure required to copy code to ram memory */
+  /* Size of this structure needs to be at least (but best) the size of the FnCmdInRam_ */
+} TFnCmdInRamStruct;
+
+
+static void FnCmdInRam_(byte Comand_)
+{
+  FCMD = Comand_;                      /* Initiate command */
+  FSTAT = 0x80U;                       /* Launch the command */
+  if ((FSTAT & BM_FLASH_ERR_MASK) == 0U) { /* If no protection violation or access error detected */
+    while (FSTAT_FCCF == 0U) {}        /* Wait for command completion */
+  }
+  return;
+}
+
+void Flash_write(unsigned long address, unsigned long value){
+	  TFnCmdInRamStruct FnCmdInRam;
+	  PFnCmdInRam FnInRam = (void*)(((dword)&FnCmdInRam + 1) & ~1UL); /* align function to even address */
+	  status  = 20;
+	  if (address >= 800000){ address = address - 8382464; }
+	  memcpy(FnInRam, FnCmdInRam_, sizeof(TFnCmdInRamStruct) - 1);
+	  asm{\
+	    move.w SR,D0; \
+	    move.w D0,SR_reg; \
+	    ori.l #1792,D0;\
+	    move.w D0,SR;\
+	    }                    /* Save the PS register */
+	  FSTAT = 0x00U;                       /* Init. flash engine */
+	  if ((FSTAT & BM_FLASH_ERR_MASK) != 0U) { /* Protection violation or access error? */
+	    FSTAT = BM_FLASH_ERR_MASK;         /* Clear FPVIOL & FACERR flag */
+	  }
+	  *(volatile dword *) (address) = value; /* Write data to the flash memory */
+	  FnInRam(0x20U);                   /* Call code in RAM */
+	  
+	  asm{ \
+	    move.w SR_reg,D0; \
+	    move.w D0,SR; \
+	  }  	
+	  
+	    if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
+	        status = 5;
+	    }
+	    else {
+	        status = 10;
+	    }
+
+}
+
+
+void Flash_erase(unsigned long address_to_erase, unsigned int length ){
+	  
+	  TFnCmdInRamStruct FnCmdInRam;
+	  PFnCmdInRam FnInRam = (void*)(((dword)&FnCmdInRam + 1) & ~1UL); /* align function to even address */
+	  status  = 20;
+	  memcpy(FnInRam, FnCmdInRam_, sizeof(TFnCmdInRamStruct) - 1);
+	  asm{\
+	    move.w SR,D0; \
+	    move.w D0,SR_reg; \
+	    ori.l #1792,D0;\
+	    move.w D0,SR;\
+	    }                    /* Save the PS register */
+	  FSTAT = 0x00U;                       /* Init. flash engine */
+	  if ((FSTAT & BM_FLASH_ERR_MASK) != 0U) { /* Protection violation or access error? */
+	    FSTAT = BM_FLASH_ERR_MASK;         /* Clear FPVIOL & FACERR flag */
+	  }
+	  *(volatile dword *) (address_to_erase) = 0x00; /* Write data to the flash memory */
+	  FnInRam(0x40U);                   /* Call code in RAM */
+	  
+	  asm{ \
+	    move.w SR_reg,D0; \
+	    move.w D0,SR; \
+	  }  
+	  
+	    if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
+	        status = 5;
+	    }
+	    else {
+	        status = 10;
+	    }
+
+}
+
+````
+
