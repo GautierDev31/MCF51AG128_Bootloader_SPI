@@ -1,0 +1,20 @@
+"./Lib/mcf51ag128_c.obj"
+"./Project_Settings/Startup_Code/startcf_c.obj"
+"./Sources/main_c.obj"
+"./Sources/exceptions_c.obj"
+"./Sources/IFsh1_c.obj"
+-sym full
+-msgstyle parseable
+-proc 51AG
+-lavender model=ewl ,print=int ,scan=int ,io=raw
+-nostdlib
+"$(ProjDirPath)/Project_Settings/Linker_Files/Project.lcf"
+-m __startup
+-L"$(MCUToolsBaseDirEnv)/ColdFire_Support/ewl/lib"
+-application
+-map
+-map keep
+-srec
+-sreclength 252
+-sreceol dos
+-w on

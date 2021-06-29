@@ -1,0 +1,173 @@
+// Bootloader V3.0
+
+#include <hidef.h> /* for EnableInterrupts macro */
+#include "derivative.h" /* include peripheral declarations */
+
+void Flash_clock_init(void);
+
+void Flash_clock_init(void){
+	//FCDIV_FDIVLD = 1;
+	//FCDIV_PRDIV8 = 1;
+	FCDIV_FDIV = 0x16U; 
+}
+
+void PE_low_level_init(void)
+{
+  /* SCGC1: TPM3=0,FTM2=0,FTM1=0,ADC=0,DMA=1,IIC=0,SCI2=0,SCI1=0 */
+  setReg8(SCGC1, 0x08U);                
+  /* SCGC2: CRC=0,FLS=1,IRQ=0,PDB=0,iEVT=1,RTC=0,SPI2=0,SPI1=0 */
+  setReg8(SCGC2, 0x48U);                
+  /* SCGC3: ??=0,??=0,??=0,HSCMP2=0,HSCMP1=0,DAC2=0,DAC1=0,EWM=0 */
+  setReg8(SCGC3, 0x00U);                
+  /* Common initialization of the CPU registers */
+  /* PTASRE: PTASRE7=0,PTASRE6=0,PTASRE5=0,PTASRE4=0,PTASRE3=0,PTASRE2=0,PTASRE1=0,PTASRE0=0 */
+  setReg8(PTASRE, 0x00U);               
+  /* PTBSRE: PTBSRE7=0,PTBSRE6=0,PTBSRE5=0,PTBSRE4=0,PTBSRE3=0,PTBSRE2=0,PTBSRE1=0,PTBSRE0=0 */
+  setReg8(PTBSRE, 0x00U);               
+  /* PTCSRE: PTCSRE6=0,PTCSRE5=0,PTCSRE4=0,PTCSRE3=0,PTCSRE2=0,PTCSRE1=0,PTCSRE0=0 */
+  clrReg8Bits(PTCSRE, 0x7FU);           
+  /* PTDSRE: PTDSRE7=0,PTDSRE6=0,PTDSRE5=0,PTDSRE4=0,PTDSRE3=0,PTDSRE2=0,PTDSRE1=0,PTDSRE0=0 */
+  setReg8(PTDSRE, 0x00U);               
+  /* PTESRE: PTESRE7=0,PTESRE6=0,PTESRE5=0,PTESRE4=0,PTESRE3=0,PTESRE2=0,PTESRE1=0,PTESRE0=0 */
+  setReg8(PTESRE, 0x00U);               
+  /* PTFSRE: PTFSRE7=0,PTFSRE6=0,PTFSRE5=0,PTFSRE4=0,PTFSRE3=0,PTFSRE2=0,PTFSRE1=0,PTFSRE0=0 */
+  setReg8(PTFSRE, 0x00U);               
+  /* PTGSRE: PTGSRE6=0,PTGSRE5=0,PTGSRE4=0,PTGSRE3=0,PTGSRE2=0,PTGSRE1=0,PTGSRE0=0 */
+  clrReg8Bits(PTGSRE, 0x7FU);           
+  /* PTHSRE: PTHSRE6=0,PTHSRE5=0,PTHSRE4=0,PTHSRE3=0,PTHSRE2=0,PTHSRE1=0,PTHSRE0=0 */
+  clrReg8Bits(PTHSRE, 0x7FU);           
+  /* PTJSRE: PTJSRE7=0,PTJSRE6=0,PTJSRE5=0,PTJSRE4=0,PTJSRE3=0,PTJSRE2=0,PTJSRE1=0,PTJSRE0=0 */
+  setReg8(PTJSRE, 0x00U);               
+  /* PTADS: PTADS7=1,PTADS6=1,PTADS5=1,PTADS4=1,PTADS3=1,PTADS2=1,PTADS1=1,PTADS0=1 */
+  setReg8(PTADS, 0xFFU);                
+  /* PTBDS: PTBDS7=1,PTBDS6=1,PTBDS5=1,PTBDS4=1,PTBDS3=1,PTBDS2=1,PTBDS1=1,PTBDS0=1 */
+  setReg8(PTBDS, 0xFFU);                
+  /* PTCDS: ??=0,PTCDS6=1,PTCDS5=1,PTCDS4=1,PTCDS3=1,PTCDS2=1,PTCDS1=1,PTCDS0=1 */
+  setReg8(PTCDS, 0x7FU);                
+  /* PTDDS: PTDDS7=1,PTDDS6=1,PTDDS5=1,PTDDS4=1,PTDDS3=1,PTDDS2=1,PTDDS1=1,PTDDS0=1 */
+  setReg8(PTDDS, 0xFFU);                
+  /* PTEDS: PTEDS7=1,PTEDS6=1,PTEDS5=1,PTEDS4=1,PTEDS3=1,PTEDS2=1,PTEDS1=1,PTEDS0=1 */
+  setReg8(PTEDS, 0xFFU);                
+  /* PTFDS: PTFDS7=1,PTFDS6=1,PTFDS5=1,PTFDS4=1,PTFDS3=1,PTFDS2=1,PTFDS1=1,PTFDS0=1 */
+  setReg8(PTFDS, 0xFFU);                
+  /* PTGDS: ??=0,PTGDS6=1,PTGDS5=1,PTGDS4=1,PTGDS3=1,PTGDS2=1,PTGDS1=1,PTGDS0=1 */
+  setReg8(PTGDS, 0x7FU);                
+  /* PTHDS: ??=0,PTHDS6=1,PTHDS5=1,PTHDS4=1,PTHDS3=1,PTHDS2=1,PTHDS1=1,PTHDS0=1 */
+  setReg8(PTHDS, 0x7FU);                
+  /* PTJDS: PTJDS7=1,PTJDS6=1,PTJDS5=1,PTJDS4=1,PTJDS3=1,PTJDS2=1,PTJDS1=1,PTJDS0=1 */
+  setReg8(PTJDS, 0xFFU);                
+  /* PTAPFE: PTAPFE7=0,PTAPFE6=0,PTAPFE5=0,PTAPFE4=0,PTAPFE3=0,PTAPFE2=0,PTAPFE1=0,PTAPFE0=0 */
+  setReg8(PTAPFE, 0x00U);               
+  /* PTBPFE: PTBPFE7=0,PTBPFE6=0,PTBPFE5=0,PTBPFE4=0,PTBPFE3=0,PTBPFE2=0,PTBPFE1=0,PTBPFE0=0 */
+  setReg8(PTBPFE, 0x00U);               
+  /* PTCPFE: PTCPFE6=0,PTCPFE5=0,PTCPFE4=0,PTCPFE3=0,PTCPFE2=0,PTCPFE1=0,PTCPFE0=0 */
+  clrReg8Bits(PTCPFE, 0x7FU);           
+  /* PTDPFE: PTDPFE7=0,PTDPFE6=0,PTDPFE5=0,PTDPFE4=0,PTDPFE3=0,PTDPFE2=0,PTDPFE1=0,PTDPFE0=0 */
+  setReg8(PTDPFE, 0x00U);               
+  /* PTEPFE: PTEPFE7=0,PTEPFE6=0,PTEPFE5=0,PTEPFE4=0,PTEPFE3=0,PTEPFE2=0,PTEPFE1=0,PTEPFE0=0 */
+  setReg8(PTEPFE, 0x00U);               
+  /* PTFPFE: PTFPFE7=0,PTFPFE6=0,PTFPFE5=0,PTFPFE4=0,PTFPFE3=0,PTFPFE2=0,PTFPFE1=0,PTFPFE0=0 */
+  setReg8(PTFPFE, 0x00U);               
+  /* PTGPFE: PTGPFE6=0,PTGPFE5=0,PTGPFE4=0,PTGPFE3=0,PTGPFE2=0,PTGPFE1=0,PTGPFE0=0 */
+  clrReg8Bits(PTGPFE, 0x7FU);           
+  /* PTHPFE: PTHPFE6=0,PTHPFE5=0,PTHPFE4=0,PTHPFE3=0,PTHPFE2=0,PTHPFE1=0,PTHPFE0=0 */
+  clrReg8Bits(PTHPFE, 0x7FU);           
+  /* PTJPFE: PTJPFE7=0,PTJPFE6=0,PTJPFE5=0,PTJPFE4=0,PTJPFE3=0,PTJPFE2=0,PTJPFE1=0,PTJPFE0=0 */
+  setReg8(PTJPFE, 0x00U);               
+  /* PTADFE: PTADFE7=0,PTADFE6=0,PTADFE5=0,PTADFE4=0,PTADFE3=0,PTADFE2=0,PTADFE1=0,PTADFE0=0 */
+  setReg8(PTADFE, 0x00U);               
+  /* PTADFC: PTACLKS=0,??=0,??=0,PTAFF=0 */
+  setReg8(PTADFC, 0x00U);               
+  /* PTBDFE: PTBDFE7=0,PTBDFE6=0,PTBDFE5=0,PTBDFE4=0,PTBDFE3=0,PTBDFE2=0,PTBDFE1=0,PTBDFE0=0 */
+  setReg8(PTBDFE, 0x00U);               
+  /* PTBDFC: PTBCLKS=0,??=0,??=0,PTBFF=0 */
+  setReg8(PTBDFC, 0x00U);               
+  /* PTCDFE: PTCDFE6=0,PTCDFE5=0,PTCDFE4=0,PTCDFE3=0,PTCDFE2=0,PTCDFE1=0,PTCDFE0=0 */
+  clrReg8Bits(PTCDFE, 0x7FU);           
+  /* PTCDFC: PTCCLKS=0,??=0,??=0,PTCFF=0 */
+  setReg8(PTCDFC, 0x00U);               
+  /* PTDDFE: PTDDFE7=0,PTDDFE6=0,PTDDFE5=0,PTDDFE4=0,PTDDFE3=0,PTDDFE2=0,PTDDFE1=0,PTDDFE0=0 */
+  setReg8(PTDDFE, 0x00U);               
+  /* PTDDFC: PTDCLKS=0,??=0,??=0,PTDFF=0 */
+  setReg8(PTDDFC, 0x00U);               
+  /* PTEDFE: PTEDFE7=0,PTEDFE6=0,PTEDFE5=0,PTEDFE4=0,PTEDFE3=0,PTEDFE2=0,PTEDFE1=0,PTEDFE0=0 */
+  setReg8(PTEDFE, 0x00U);               
+  /* PTEDFC: PTECLKS=0,??=0,??=0,PTEFF=0 */
+  setReg8(PTEDFC, 0x00U);               
+  /* PTFDFE: PTFDFE7=0,PTFDFE6=0,PTFDFE5=0,PTFDFE4=0,PTFDFE3=0,PTFDFE2=0,PTFDFE1=0,PTFDFE0=0 */
+  setReg8(PTFDFE, 0x00U);               
+  /* PTFDFC: PTFCLKS=0,??=0,??=0,PTFFF=0 */
+  setReg8(PTFDFC, 0x00U);               
+  /* PTGDFE: PTGDFE6=0,PTGDFE5=0,PTGDFE4=0,PTGDFE3=0,PTGDFE2=0,PTGDFE1=0,PTGDFE0=0 */
+  clrReg8Bits(PTGDFE, 0x7FU);           
+  /* PTGDFC: PTGCLKS=0,??=0,??=0,PTGFF=0 */
+  setReg8(PTGDFC, 0x00U);               
+  /* PTHDFE: PTHDFE6=0,PTHDFE5=0,PTHDFE4=0,PTHDFE3=0,PTHDFE2=0,PTHDFE1=0,PTHDFE0=0 */
+  clrReg8Bits(PTHDFE, 0x7FU);           
+  /* PTHDFC: PTHCLKS=0,??=0,??=0,PTHFF=0 */
+  setReg8(PTHDFC, 0x00U);               
+  /* PTJDFE: PTJDFE7=0,PTJDFE6=0,PTJDFE5=0,PTJDFE4=0,PTJDFE3=0,PTJDFE2=0,PTJDFE1=0,PTJDFE0=0 */
+  setReg8(PTJDFE, 0x00U);               
+  /* PTJDFC: PTJCLKS=0,??=0,??=0,PTJFF=0 */
+  setReg8(PTJDFC, 0x00U);               
+  /* ### Shared modules init code ... */
+  /* ### IntFLASH "IFsh1" init code ... */
+  setReg8(INTC_WCR, 0x80U);             
+  /* INTC_IMRL: IMR31=0,IMR30=0,IMR29=0,IMR28=0,IMR27=0,IMR26=0,IMR25=0,IMR24=0,IMR23=0,IMR22=0,IMR21=0,IMR20=0,IMR19=0,IMR18=0,IMR17=0,IMR16=0,IMR15=0,IMR14=0,IMR13=0,IMR12=0,IMR11=0,IMR10=0,IMR9=0,IMR8=0,IMR7=0,IMR6=0,IMR5=0,IMR4=0,IMR3=0,IMR2=0,IMR1=0,IMR0=0 */
+  setReg32(INTC_IMRL, 0x00UL);          
+  /* INTC_IMRH: ??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,??=0,IMR43=0,IMR42=0,IMR41=0,IMR40=0,IMR39=0,IMR38=0,IMR37=0,IMR36=0,IMR35=0,IMR34=0,IMR33=0,IMR32=0 */
+  setReg32(INTC_IMRH, 0x00UL);          
+  SR_lock = 0x00;
+  /* Set initial interrupt priority 0 */
+  asm {
+    move.w SR,D0;
+    andi.l #0xF8FF,D0;
+    move.w D0,SR;
+  }
+}
+
+void main(void) {
+	DisableInterrupts
+  /* include your code here */
+
+	
+	
+	
+	// Intern clock init
+	ICSC1 = 0x04;
+	ICSC2 = 0x40;
+	ICSTRM = 0x9D;
+	//FTRIM = 0x01;
+	//TRIM = 0x9D;
+	ICSSC = 0x70;
+	Flash_clock_init();
+	
+	//Memory protection
+	FPROT_FPS = 0x7C; 
+	FPROT_FPOPEN = 1;
+	
+	EnableInterrupts;
+	/*************************************SPI2 CONFIGURATION******************************************************************************/
+	SCGC2_SPI2 = 1;	/* clock gating */
+	SPI2C1_LSBFE = 0; /* MSB */
+	SPI2C1_SSOE = 0; /* Slave select input (/SS:MODFEN&SSOE) */
+	SPI2C1_CPHA = 1; /* Start first edge*/
+	SPI2C1_CPOL = 0; /* Active-high */
+	SPI2C1_MSTR = 0; /* Slave */
+	SPI2C1_SPTIE = 0; /* No SPI Transmit IT */
+	SPI2C1_SPE = 1; /* SPI enable */
+	SPI2C1_SPIE = 1; /* SPI IT Rx/Fault */
+	SPI2C2_SPC0 = 0; /* IN/OUT separate */
+	SPI2C2_SPISWAI = 1; /* Stop SPI at WAIT */
+	SPI2C2_RXDMAE = 0; /* No receive DMA */
+	SPI2C2_BIDIROE = 0; /* No Bidirectional */
+	SPI2C2_MODFEN = 0; /* Mode-Fault function enable (/SS:MODFEN&SSOE) */
+	SPI2C2_TXDMAE = 0; /* No transmit DMA */
+	SPI2C2_SPIMODE = 1; /* 16-bit SPI */
+	SPI2C2_SPMIE = 0; /* No SPI Match IT */  
+
+  for(;;) {
+    //__RESET_WATCHDOG();	/* feeds the dog */
+  } /* loop forever */
+  /* please make sure that you never leave main */
+}

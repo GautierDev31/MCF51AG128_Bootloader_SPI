@@ -1,22 +1,17 @@
-/*
- * File:    exceptions.c
- * Purpose: Generic exception handling for ColdFire processors
- *
- */
+/*******************************************************
+Name ......... : exceptions.c
+Role ........ : Manages commands received in SPI for memory manipulation
+Author ...... : Gautier JOBERT
+Email ....... : gautier.jobert@protonmail.com
+
+********************************************************/
 
 #include "derivative.h"
 #include "exceptions.h"
 #include "startcf.h"
+#include<string.h>
 
-
-/***********************************************************************/
-/*
- *  Set NO_PRINTF to 0 in order the exceptions.c interrupt handler
- *  to output messages to the standard io. 
- * 
- */
 #define NO_PRINTF    1
-
 #if NO_PRINTF
 #define VECTORDISPLAY(MESSAGE)                    asm { nop; };
 #define VECTORDISPLAY2(MESSAGE,MESSAGE2)          asm { nop; };
@@ -33,28 +28,10 @@ extern "C" {
 #endif
 
 extern unsigned long far _SP_INIT[];
-
-/***********************************************************************/
-/*
- * Handling of the TRK ColdFire libs (printf support in Debugger Terminal) 
- * 
- * To enable this support:  
- * - Set CONSOLE_IO_SUPPORT  1 in this file; this will enable 
- *   TrapHandler_printf for the trap #14 exception.
- *
- * - Make sure the file console_io_cf.c is in your project. 
- *
- * - In the debugger make sure that in the Connection "Setup" dialog, 
- *   "Debug Options" property page, the check box 
- *   "Enable Terminal printf support" is set.
- *   
- *
- * 
- */
- 
 #ifndef CONSOLE_IO_SUPPORT
 #define CONSOLE_IO_SUPPORT  0 
 #endif
+
 
 #if CONSOLE_IO_SUPPORT == 1
 
@@ -64,6 +41,13 @@ asm __declspec(register_abi) void TrapHandler_printf(void) {
 }
 
 #endif                                                   
+
+
+// Defines and structures used for commands
+
+typedef void (*PFnCmdInRam)(byte Comand_);
+#define BM_FLASH_ERR_MASK   0x30U  
+volatile far word SR_reg;              /* Current CCR register */
 
 struct ShortBits
 {
@@ -148,15 +132,19 @@ union FIEEE754
 	unsigned char chrvalue[4];
 };
 
-
+typedef struct {
+  byte code[0x32];                     /* Structure required to copy code to ram memory */
+  /* Size of this structure needs to be at least (but best) the size of the FnCmdInRam_ */
+} TFnCmdInRamStruct;
 
 
 int chcksum(struct ShortBits value);
 void Flash_write_burst(unsigned long address, unsigned long tblvalue[], unsigned int length);
-void Flash_write(unsigned long address, unsigned int value);
-void Flash_erase(unsigned long address_to_erase, unsigned int length);
+void Flash_write(unsigned long address, unsigned long value);
+void Flash_erase(unsigned long address_to_erase);
 void Ram_write(unsigned long address_to_write, unsigned int value);
 void load_vectors();
+__declspec(register_abi) void interrupt ITSPI2(void);
 
 unsigned int status = 30; // Status which will be read by the flasher
 
@@ -183,78 +171,118 @@ int chcksum(struct ShortBits value){
 	return ck;
 }
 
-void Flash_write(unsigned long address, unsigned int value){
-	unsigned long *pdst;
-	if (address >= 800000){
-		address = address - 8382464;
-	}
-	status = 20;
-	FSTAT_FCBEF = 1;
-	if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30;}
-	pdst = (unsigned long *)(address);
-	*pdst = value;
-	FCMD = 0x20; 
-	FSTAT = 0x80;
-	while (!FSTAT_FCCF){}
-	if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
-		status = 5;
-	}
-	else {
-		status = 10;
-	}
+static void FnCmdInRam_(byte Comand_)
+{
+  FCMD = Comand_;                      /* Initiate command */
+  FSTAT = 0x80U;                       /* Launch the command */
+  if ((FSTAT & BM_FLASH_ERR_MASK) == 0U) { /* If no protection violation or access error detected */
+    while (FSTAT_FCCF == 0U) {}        /* Wait for command completion */
+  }
+  return;
+}
+
+void Flash_write(unsigned long address, unsigned long value){
+	  TFnCmdInRamStruct FnCmdInRam;
+	  PFnCmdInRam FnInRam = (void*)(((dword)&FnCmdInRam + 1) & ~1UL); /* align function to even address */
+	  status  = 20;
+	  if (address >= 800000){ address = address - 8382464; }
+	  memcpy(FnInRam, FnCmdInRam_, sizeof(TFnCmdInRamStruct) - 1);
+	  asm{\
+	    move.w SR,D0; \
+	    move.w D0,SR_reg; \
+	    ori.l #1792,D0;\
+	    move.w D0,SR;\
+	    }                    /* Save the PS register */
+	  FSTAT = 0x00U;                       /* Init. flash engine */
+	  if ((FSTAT & BM_FLASH_ERR_MASK) != 0U) { /* Protection violation or access error? */
+	    FSTAT = BM_FLASH_ERR_MASK;         /* Clear FPVIOL & FACERR flag */
+	  }
+	  *(volatile dword *) (address) = value; /* Write data to the flash memory */
+	  FnInRam(0x20U);                   /* Call code in RAM */
+	  
+	  asm{ \
+	    move.w SR_reg,D0; \
+	    move.w D0,SR; \
+	  }  	
+	  
+	    if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
+	        status = 5;
+	    }
+	    else {
+	        status = 10;
+	    }
+
 }
 
 
 void Flash_write_burst(unsigned long address, unsigned long tblvalue[], unsigned int length){
-	unsigned int i;
-	unsigned long *pdst;
-	if (address >= 800000){
-		address = address - 8382464;
-	}
-	status = 20;
-	asm { move.w SR,D0; ori.l #0x0700,D0; move.w D0,SR;  }
-	for (i = 0; i<length; i++){
-		pdst = (unsigned long *)(address + 4*i);
-		FSTAT_FCBEF = 1;
-		if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30;}
-		*pdst = tblvalue[i];
-		FCMD = 0x25; 
-		FSTAT = 0x80;
-		while (!FSTAT_FCCF){}
-	}
-	asm { move.w SR,D0; andi.l #0xF8FF,D0; move.w D0,SR;  }
-	if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
-		status = 5;
-	}
-	else {
-		status = 10;
-	}
+	  int i;
+	  TFnCmdInRamStruct FnCmdInRam;
+	  PFnCmdInRam FnInRam = (void*)(((dword)&FnCmdInRam + 1) & ~1UL); /* align function to even address */
+	  status  = 20;
+	  if (address >= 800000){ address = address - 8382464; }
+	  memcpy(FnInRam, FnCmdInRam_, sizeof(TFnCmdInRamStruct) - 1);
+	  asm{\
+	    move.w SR,D0; \
+	    move.w D0,SR_reg; \
+	    ori.l #1792,D0;\
+	    move.w D0,SR;\
+	    }                    /* Save the PS register */
+	  FSTAT = 0x00U;                       /* Init. flash engine */
+	  if ((FSTAT & BM_FLASH_ERR_MASK) != 0U) { /* Protection violation or access error? */
+	    FSTAT = BM_FLASH_ERR_MASK;         /* Clear FPVIOL & FACERR flag */
+	  }
+		for (i = 0; i<length; i++){
+			*(volatile dword *) (address + 4*i) = tblvalue[i]; /* Write data to the flash memory */
+			FnInRam(0x25U);                   /* Call code in RAM */
+		}
+
+	  asm{ \
+	    move.w SR_reg,D0; \
+	    move.w D0,SR; \
+	  }  	  
+	  
+	    if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
+	        status = 5;
+	    }
+	    else {
+	        status = 10;
+	    }
 }
 
-void Flash_erase(unsigned long address_to_erase, unsigned int length ){
-	unsigned int i;
-	unsigned long *pdst;
-	if (address_to_erase >= 800000){
-		address_to_erase = address_to_erase - 8382464;
-	}
-	status = 20;
-	//asm { move.w SR,D0; ori.l #0x0700,D0; move.w D0,SR;  }
-	for (i = 0; i<length; i++){
-		pdst = (unsigned long *)(address_to_erase + 4*i);
-		FSTAT_FCBEF = 1;
-		if (!FSTAT_FACCERR && !FSTAT_FPVIOL){ FSTAT = 0x30;}
-		*pdst = 0xFFFFFFFF;
-		FCMD = 0x25; 
-		FSTAT = 0x80;
-		while (!FSTAT_FCCF){}
-	}
-	//asm { move.w SR,D0; andi.l #0xF8FF,D0; move.w D0,SR;  }
-	if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
-		status = 5;
-	}
-	else {
-		status = 10;
-	}
+
+
+void Flash_erase(unsigned long address_to_erase){
+	  
+	  TFnCmdInRamStruct FnCmdInRam;
+	  PFnCmdInRam FnInRam = (void*)(((dword)&FnCmdInRam + 1) & ~1UL); /* align function to even address */
+	  status  = 20;
+	  memcpy(FnInRam, FnCmdInRam_, sizeof(TFnCmdInRamStruct) - 1);
+	  asm{\
+	    move.w SR,D0; \
+	    move.w D0,SR_reg; \
+	    ori.l #1792,D0;\
+	    move.w D0,SR;\
+	    }                    /* Save the PS register */
+	  FSTAT = 0x00U;                       /* Init. flash engine */
+	  if ((FSTAT & BM_FLASH_ERR_MASK) != 0U) { /* Protection violation or access error? */
+	    FSTAT = BM_FLASH_ERR_MASK;         /* Clear FPVIOL & FACERR flag */
+	  }
+	  *(volatile dword *) (address_to_erase) = 0x00; /* Write data to the flash memory */
+	  FnInRam(0x40U);                   /* Call code in RAM */
+	  
+	  asm{ \
+	    move.w SR_reg,D0; \
+	    move.w D0,SR; \
+	  }  
+	  
+	    if (FSTAT_FPVIOL || FSTAT_FACCERR ) {
+	        status = 5;
+	    }
+	    else {
+	        status = 10;
+	    }
+
 }
 
 void Ram_write(unsigned long address_to_write, unsigned int value){
@@ -273,8 +301,8 @@ void load_vectors()
 	 }
 }
 
-
-unsigned int length= 0;
+// Variable used for commands
+unsigned int length= 0; 
 unsigned long *val_memory_read;
 unsigned long val_memory= 0;
 unsigned long memory_lsb= 0;
@@ -285,28 +313,197 @@ unsigned int cpt_significant_bit = 0;
 int state_running = 0; // 1 if writing
 unsigned int cpt_reading = 0;
 unsigned long checksum = 0;
-int state_writing = 0; 
-/*
- * 0 => Waiting for length
- * 1 => Waiting for address
- * 2 => Save Data to write / Checksum / Writing
- */
-unsigned long tbl_memory_values[100] = {0};
+int state_writing = 0; // Variable used for the state machine
+unsigned long tbl_memory_values[100] = {0}; // Table of the memory values saved in ram
 union U_ShortCharBits spi2_rx;	
 union U_ShortCharBits spi2_tx;	
 
 
+__declspec(register_abi) void interrupt ITSPI2(void)
+{
+	
+	/* SPI MESSAGE RECEPTION */
+	if(SPI2S_SPRF) {
+		
+		spi2_rx.U8[0] = SPI2DH;
+		spi2_rx.U8[1] = SPI2DL;	
 
 
+	if (state_running == 0){
+		switch((unsigned long)spi2_rx.U16){
+			/* Save memory sector */
+			case 300:
+				state_running = 300;
+				break;
+			/* Flash erase sector */
+			case 305 :
+				state_running = 305;
+				break;
+			/* Flash memory sector */
+			case 310 :
+				if(length == 1){ Flash_write(address, tbl_memory_values[0]);}
+				else {Flash_write_burst(address, tbl_memory_values, length);}
+				break;
+			/* Read memory word */
+			case 400 :
+				cpt_significant_bit = 0;
+				state_running = 400;
+				break;	
+			/* Read status */
+			case 410 :
+				spi2_tx.U16 = (unsigned short)status;
+				break;
+			/* Read checksum */
+			case 420 :
+				spi2_tx.U16 = (unsigned short)checksum;
+				break;
+			/* Load vectors */
+			case 600 :
+				 load_vectors();
+				 break;
+			/* Jump & Launch */
+			case 700:
+				state_running = 700;
+				 break;
 
-/***********************************************************************/
-/*
- * This is the handler for all exceptions which are not common to all 
- * ColdFire Chips.  
- *
- * Called by mcf_exception_handler
- * 
- */
+			default:
+				break;
+			}
+	}
+	else if (state_running == 300){
+		switch (state_writing){
+		/* Waiting for Length */
+		case 0 :
+			length = (unsigned long)spi2_rx.U16;
+			state_writing = 1;
+			checksum = 0;
+			checksum += chcksum(spi2_rx.bits);
+			break;
+		/* Waiting for address */
+		case 1 :
+			checksum += chcksum(spi2_rx.bits);
+			if (cpt_significant_bit%2 == 0){
+				memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+				cpt_significant_bit +=1;
+				
+			}
+			else{
+				memory_msb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+				address = memory_msb + (memory_lsb << 16);
+				cpt_significant_bit = 0;
+				state_writing = 2;
+			}
+			break;
+			
+			/* Save memory sector */
+			case 2 :
+				checksum += chcksum(spi2_rx.bits);
+					
+					/* MSB */
+					if (cpt_significant_bit%2 == 0){
+						memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+						cpt_significant_bit += 1;
+					}
+					
+					/* LSB */
+					else{
+						memory_msb =  (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+						val_memory = memory_msb + (memory_lsb << 16);
+						tbl_memory_values[cpt_words] = val_memory;
+						cpt_significant_bit = 0;
+						cpt_words += 1;
+						}
+					
+					/* Write / Checksum / END */
+					if (cpt_words == length){
+						//Flash_write_burst(address, tbl_memory_values, length);
+						//length = 0;
+						cpt_words = 0;
+						cpt_significant_bit = 0;
+						state_running = 0;
+						state_writing = 0;
+					}				
+		
+				break;
+			default :
+				break;
+			} 
+		}// End state running Save memory sector (300)
+	
+		else if (state_running == 400){
+			switch(state_writing){
+			case 0 :
+				if (cpt_significant_bit%2 == 0){
+					memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+					cpt_significant_bit +=1;
+					
+				}
+				else{
+					memory_msb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+					address = memory_msb + (memory_lsb << 16);
+					cpt_significant_bit = 0;
+					//val_memory_read = (unsigned long*)address; 
+					state_writing = 1;
+					
+				}
+				break;
+			case 1:
+				val_memory = *(volatile dword *) (address); 
+				spi2_tx.U16 = (unsigned short)((val_memory<< 16)/65536); //MSB
+				state_writing = 2;
+				break;
+			case 2 :
+				spi2_tx.U16 = (unsigned short)((val_memory & 0xFFFF0000)/65536); // LSB
+				state_writing = 0;
+				state_running = 0;
+				break;
+			default :
+				break;
+			}
+		}// End state running read memory word (400)
+		else if (state_running == 700){
+			if (cpt_significant_bit%2 == 0){
+				memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+				cpt_significant_bit +=1;
+				
+			}
+			else{
+				memory_msb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+				address = memory_msb + (memory_lsb << 16);
+				cpt_significant_bit = 0;
+				 FPROT_FPS = 0x40; 
+				 FPROT_FPOPEN = 1;
+				 asm ( MOVE.L   address, A0);
+				 asm ( jmp      (a0));
+			}
+			
+		} // End state running Jump (700)
+		else if (state_running == 305){
+			if (cpt_significant_bit%2 == 0){
+				memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+				cpt_significant_bit +=1;
+				
+			}
+			else{
+				memory_msb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
+				address = memory_msb + (memory_lsb << 16);
+				cpt_significant_bit = 0;
+				state_running = 0;
+				Flash_erase(address);
+			}
+		} // End state erase flash sector
+		
+	}
+
+	if(SPI2S_SPTEF) /* Tx register ready ? */
+		{
+				
+				SPI2DH = spi2_tx.U8[0] ;
+				SPI2DL = spi2_tx.U8[1] ;
+		}
+	
+} // End SPI INT
+
 void derivative_interrupt(unsigned long vector)
 {
    if (vector < 64 || vector > 192) {
@@ -314,33 +511,6 @@ void derivative_interrupt(unsigned long vector)
    }
 }
 
-/***********************************************************************
- *
- * This is the exception handler for all  exceptions common to all 
- * chips ColdFire.  Most exceptions do nothing, but some of the more 
- * important ones are handled to some extent.
- *
- * Called by asm_exception_handler 
- *
- * The ColdFire family of processors has a simplified exception stack
- * frame that looks like the following:
- *
- *              3322222222221111 111111
- *              1098765432109876 5432109876543210
- *           8 +----------------+----------------+
- *             |         Program Counter         |
- *           4 +----------------+----------------+
- *             |FS/Fmt/Vector/FS|      SR        |
- *   SP -->  0 +----------------+----------------+
- *
- * The stack self-aligns to a 4-byte boundary at an exception, with
- * the FS/Fmt/Vector/FS field indicating the size of the adjustment
- * (SP += 0,1,2,3 bytes).
- *             31     28 27      26 25    18 17      16 15                                  0
- *           4 +---------------------------------------+------------------------------------+
- *             | Format | FS[3..2] | Vector | FS[1..0] |                 SR                 |
- *   SP -->  0 +---------------------------------------+------------------------------------+
- */ 
 #define MCF5XXX_RD_SF_FORMAT(PTR)   \
    ((*((unsigned short *)(PTR)) >> 12) & 0x00FF)
 
@@ -515,7 +685,7 @@ void mcf_exception_handler(void *framepointer)
 
 asm  __declspec(register_abi) void asm_exception_handler(void)
 {
-	/*
+	
    link     a6,#0 
    lea     -20(sp), sp
    movem.l d0-d2/a0-a1, (sp)
@@ -524,179 +694,11 @@ asm  __declspec(register_abi) void asm_exception_handler(void)
    movem.l (sp), d0-d2/a0-a1
    lea     20(sp), sp
    unlk a6
-   rte */
-   addq.l		#8, sp
+   rte 
+   //addq.l		#8, sp
 }
 
-__declspec(register_abi) void interrupt ITSPI2(void)
-{
-	
-	/* SPI MESSAGE RECEPTION */
-	if(SPI2S_SPRF) {
-		
-		spi2_rx.U8[0] = SPI2DH;
-		spi2_rx.U8[1] = SPI2DL;	
 
-
-	if (state_running == 0){
-		switch((unsigned long)spi2_rx.U16){
-			/* Save memory sector */
-			case 300:
-				state_running = 300;
-				break;
-			/* Flash erase sector */
-			case 305 :
-				Flash_erase(address, length );
-				break;
-			/* Flash memory sector */
-			case 310 :
-				if(length == 1){ Flash_write(address, tbl_memory_values[0]);}
-				else {Flash_write_burst(address, tbl_memory_values, length);}
-				break;
-			/* Read memory word */
-			case 400 :
-				cpt_significant_bit = 0;
-				state_running = 400;
-				break;	
-			/* Read status */
-			case 410 :
-				spi2_tx.U16 = status;
-				break;
-			/* Read checksum */
-			case 420 :
-				spi2_tx.U16 = checksum;
-				break;
-			/* Load vectors */
-			case 600 :
-				 load_vectors();
-				 break;
-			/* Jump & Launch */
-			case 700:
-				state_running = 700;
-				 break;
-
-			default:
-				break;
-			}
-	}
-	else if (state_running == 300){
-		switch (state_writing){
-		/* Waiting for Length */
-		case 0 :
-			length = (unsigned long)spi2_rx.U16;
-			state_writing = 1;
-			checksum = 0;
-			checksum += chcksum(spi2_rx.bits);
-			break;
-		/* Waiting for address */
-		case 1 :
-			checksum += chcksum(spi2_rx.bits);
-			if (cpt_significant_bit%2 == 0){
-				memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
-				cpt_significant_bit +=1;
-				
-			}
-			else{
-				memory_msb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
-				address = memory_msb + (memory_lsb << 16);
-				cpt_significant_bit = 0;
-				state_writing = 2;
-			}
-			break;
-			
-			/* Save memory sector */
-			case 2 :
-				checksum += chcksum(spi2_rx.bits);
-					
-					/* MSB */
-					if (cpt_significant_bit%2 == 0){
-						memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
-						cpt_significant_bit += 1;
-					}
-					
-					/* LSB and save */
-					else{
-						memory_msb =  (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
-						val_memory = memory_msb + (memory_lsb << 16);
-						tbl_memory_values[cpt_words] = val_memory;
-						cpt_significant_bit = 0;
-						cpt_words += 1;
-						}
-					
-					/* Write / Checksum / END */
-					if (cpt_words == length){
-						//Flash_write_burst(address, tbl_memory_values, length);
-						//length = 0;
-						cpt_words = 0;
-						cpt_significant_bit = 0;
-						state_running = 0;
-						state_writing = 0;
-					}				
-		
-				break;
-			default :
-				break;
-			} 
-		}// End state running Save memory sector (300)
-	
-		else if (state_running == 400){
-			switch(state_writing){
-			case 0 :
-				if (cpt_significant_bit%2 == 0){
-					memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
-					cpt_significant_bit +=1;
-					
-				}
-				else{
-					memory_msb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
-					address = memory_msb + (memory_lsb << 16);
-					cpt_significant_bit = 0;
-					val_memory_read = (unsigned long*)address; 
-					state_writing = 1;
-					
-				}
-				break;
-			case 1:
-				val_memory = (unsigned long)*val_memory_read;
-				spi2_tx.U16 = (*val_memory_read<< 16)/65536; //MSB
-				state_writing = 2;
-				break;
-			case 2 :
-				spi2_tx.U16 = (*val_memory_read & 0xFFFF0000)/65536; // LSB
-				state_writing = 0;
-				state_running = 0;
-				break;
-			default :
-				break;
-			}
-		}// End state running read memory word (400)
-		else if (state_running == 700){
-			if (cpt_significant_bit%2 == 0){
-				memory_lsb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
-				cpt_significant_bit +=1;
-				
-			}
-			else{
-				memory_msb = (unsigned long)spi2_rx.U8[1] + ((unsigned long)spi2_rx.U8[0] << 8);
-				address = memory_msb + (memory_lsb << 16);
-				cpt_significant_bit = 0;
-				 FPROT_FPS = 0x7B; 
-				 FPROT_FPOPEN = 1;
-				 asm ( MOVE.L   address, A0);
-				 asm ( jmp      (a0));
-			}
-			
-		} // End state running Jump (700)
-	}
-	
-	if(SPI2S_SPTEF) /* Tx register ready ? */
-		{
-				
-				SPI2DH = spi2_tx.U8[0] ;
-				SPI2DL = spi2_tx.U8[1] ;
-		}
-	
-} // End SPI INT
 
 
 typedef void (* vectorTableEntryType)(void);

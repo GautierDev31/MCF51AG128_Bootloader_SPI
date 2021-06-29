@@ -362,22 +362,27 @@
   00000474 00000046 .text   __copy_rom_sections_to_ram	(startcf_c.obj)
   000004BA 00000004 .text   _ExitProcess	(startcf_c.obj)
   000004BE 00000210 .text   clear_mem	(startcf_c.obj)
-  000006CE 0000009A .text   _startup	(startcf_c.obj)
-  00000768 0000002A .text   Flash_clock_init	(main_c.obj)
-  00000792 00000110 .text   main	(main_c.obj)
-  000008A2 0000018C .text   chcksum	(exceptions_c.obj)
-  00000A2E 000000B8 .text   Flash_write	(exceptions_c.obj)
-  00000AE6 000000FE .text   Flash_write_burst	(exceptions_c.obj)
-  00000BE4 000000DA .text   Flash_erase	(exceptions_c.obj)
-  00000CBE 00000056 .text   load_vectors	(exceptions_c.obj)
-  00000D14 00000002 .text   asm_exception_handler	(exceptions_c.obj)
-  00000D16 0000044C .text   ITSPI2	(exceptions_c.obj)
-  00001162 0000001A .text   __initialize_hardware	(exceptions_c.obj)
-  0000117C 0000000C .text   _ewl_exit	(librt.a abort_exit.o   )
-  00001188 0000001C .text   __call_static_initializers	(librt.a cf_staticinitia)
-  000011A4 0000002C .text   __destroy_global_chain	(librt.a cf_staticinitia)
-#>000011D0          ___ROM_AT (linker command file)
-#>000011D0          ___DATA_ROM (linker command file)
+  000006CE 00000090 .text   _startup	(startcf_c.obj)
+  0000075E 0000002A .text   Flash_clock_init	(main_c.obj)
+  00000788 0000001A .text   Intern_clock_init	(main_c.obj)
+  000007A2 000000D0 .text   SPI_init	(main_c.obj)
+  00000872 00000044 .text   main	(main_c.obj)
+  000008B6 0000018C .text   chcksum	(exceptions_c.obj)
+  00000A42 0000002E .text   FnCmdInRam_	(exceptions_c.obj)
+  00000A70 000000B4 .text   Flash_write	(exceptions_c.obj)
+  00000B24 000000EA .text   Flash_write_burst	(exceptions_c.obj)
+  00000C0E 00000098 .text   Flash_erase	(exceptions_c.obj)
+  00000CA6 00000056 .text   load_vectors	(exceptions_c.obj)
+  00000CFC 000004A2 .text   ITSPI2	(exceptions_c.obj)
+  0000119E 000001E4 .text   mcf_exception_handler	(exceptions_c.obj)
+  00001382 00000020 .text   asm_exception_handler	(exceptions_c.obj)
+  000013A2 0000001A .text   __initialize_hardware	(exceptions_c.obj)
+  000013BC 00000012 .text   memcpy	(libc.a mem.o          )
+  000013CE 0000000C .text   _ewl_exit	(librt.a abort_exit.o   )
+  000013DA 0000001C .text   __call_static_initializers	(librt.a cf_staticinitia)
+  000013F6 0000002C .text   __destroy_global_chain	(librt.a cf_staticinitia)
+#>00001424          ___ROM_AT (linker command file)
+#>00001424          ___DATA_ROM (linker command file)
 
 # .data
 #>00800400          ___DATA_RAM (linker command file)
@@ -412,9 +417,9 @@
   008005BC 00000002 .sbss   spi2_tx	(exceptions_c.obj)
   008005BE 00000002 .sbss   spi2_rx	(exceptions_c.obj)
   008005C0 00000004 .sbss   address	(exceptions_c.obj)
-  008005C4 00000004 .sbss   val_memory_read	(exceptions_c.obj)
-#>008005C8          __END_SBSS (linker command file)
-#>008005C8          __START_BSS (linker command file)
+#>008005C4          __END_SBSS (linker command file)
+#>008005C4          __START_BSS (linker command file)
+  008005C4 00000002 .bss    SR_reg	(exceptions_c.obj)
   008005C8 00000004 .bss    __global_destructor_chain	(librt.a cf_staticinitia)
 #>008005CC          __END_BSS (linker command file)
 #>008005CC          ___BSS_END (linker command file)
@@ -429,10 +434,10 @@
 #>00000010          ___stack_safety (linker command file)
 #>00800DCC          __SP_INIT (linker command file)
 #>00800DCC          ___SP_AFTER_RESET (linker command file)
-#>000011D8          _romp_at (linker command file)
+#>0000142C          _romp_at (linker command file)
 
 # .romp
-#>000011D8          __S_romp (linker command file)
+#>0000142C          __S_romp (linker command file)
 
 
 # Memory map:
@@ -553,12 +558,12 @@
   000001C4 000001C4 00000004 .abs_vector_113 abs_vector_113
   000001C8 000001C8 00000004 .abs_vector_114 abs_vector_114
   00000410 00000410 00000000 .code      code
-  00000410 00000410 00000DC0 .text      code
+  00000410 00000410 00001014 .text      code
   00800400 00800400 00000000 .userram   userram
-  00800400 000011D0 00000008 .data      userram
+  00800400 00001424 00000008 .data      userram
   00800408 00800408 000001C4 .bss       userram
   008005CC 008005CC 00000000 .custom    userram
-  008005CC 000011D8 00000018 .romp      userram
+  008005CC 0000142C 00000018 .romp      userram
 
-# Link start time: Wed Jun 09 09:00:49 2021
-# Link end time: Wed Jun 09 09:00:49 2021
+# Link start time: Tue Jun 29 17:01:44 2021
+# Link end time: Tue Jun 29 17:01:44 2021

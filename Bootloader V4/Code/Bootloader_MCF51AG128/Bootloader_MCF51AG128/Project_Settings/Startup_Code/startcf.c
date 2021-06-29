@@ -189,8 +189,9 @@ static __declspec(register_abi) void clear_mem(char *dst, unsigned long n)
 asm __declspec(register_abi) void _startup(void)
 {
 	/* disable address errors */
+	/*
     move #0xC0000000, d0
-    movec d0,CPUCR	
+    movec d0,CPUCR	*/
 	
 	/* disable interrupts */
     move.w        #0x2700,sr
