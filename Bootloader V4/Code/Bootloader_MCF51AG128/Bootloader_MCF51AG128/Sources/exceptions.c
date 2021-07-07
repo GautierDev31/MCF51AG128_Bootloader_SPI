@@ -361,11 +361,23 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 			case 600 :
 				 load_vectors();
 				 break;
-			/* Jump & Launch */
+			/* Jump at a specific address */
 			case 700:
 				state_running = 700;
 				 break;
 
+			case 710 :
+				address = *(volatile dword *)(0x1FF0);
+				if (address != 0xFFFFFFFF && address <0x2000){
+					FPROT_FPS = 0x40; 
+					FPROT_FPOPEN = 1;
+					asm ( MOVE.L   address, A0);
+					asm ( jmp      (a0));
+				}
+				else {
+					status = 7; 
+				}
+				break;
 			default:
 				break;
 			}

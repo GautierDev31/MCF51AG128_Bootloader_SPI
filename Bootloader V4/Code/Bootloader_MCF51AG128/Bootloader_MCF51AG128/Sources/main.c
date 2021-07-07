@@ -4,7 +4,7 @@ Bootloader V4.1
 Role ........ : Manages microcontroller memory and reflash
 Author ...... : Gautier JOBERT
 Email ....... : gautier.jobert@protonmail.com
-Version ..... : V4.1 du 29/06/2021
+Version ..... : V4.2 du 29/06/2021
 
 ********************************************************/
 

@@ -373,16 +373,16 @@
   00000B24 000000EA .text   Flash_write_burst	(exceptions_c.obj)
   00000C0E 00000098 .text   Flash_erase	(exceptions_c.obj)
   00000CA6 00000056 .text   load_vectors	(exceptions_c.obj)
-  00000CFC 000004A2 .text   ITSPI2	(exceptions_c.obj)
-  0000119E 000001E4 .text   mcf_exception_handler	(exceptions_c.obj)
-  00001382 00000020 .text   asm_exception_handler	(exceptions_c.obj)
-  000013A2 0000001A .text   __initialize_hardware	(exceptions_c.obj)
-  000013BC 00000012 .text   memcpy	(libc.a mem.o          )
-  000013CE 0000000C .text   _ewl_exit	(librt.a abort_exit.o   )
-  000013DA 0000001C .text   __call_static_initializers	(librt.a cf_staticinitia)
-  000013F6 0000002C .text   __destroy_global_chain	(librt.a cf_staticinitia)
-#>00001424          ___ROM_AT (linker command file)
-#>00001424          ___DATA_ROM (linker command file)
+  00000CFC 0000050C .text   ITSPI2	(exceptions_c.obj)
+  00001208 000001E4 .text   mcf_exception_handler	(exceptions_c.obj)
+  000013EC 00000020 .text   asm_exception_handler	(exceptions_c.obj)
+  0000140C 0000001A .text   __initialize_hardware	(exceptions_c.obj)
+  00001426 00000012 .text   memcpy	(libc.a mem.o          )
+  00001438 0000000C .text   _ewl_exit	(librt.a abort_exit.o   )
+  00001444 0000001C .text   __call_static_initializers	(librt.a cf_staticinitia)
+  00001460 0000002C .text   __destroy_global_chain	(librt.a cf_staticinitia)
+#>0000148C          ___ROM_AT (linker command file)
+#>0000148C          ___DATA_ROM (linker command file)
 
 # .data
 #>00800400          ___DATA_RAM (linker command file)
@@ -434,10 +434,10 @@
 #>00000010          ___stack_safety (linker command file)
 #>00800DCC          __SP_INIT (linker command file)
 #>00800DCC          ___SP_AFTER_RESET (linker command file)
-#>0000142C          _romp_at (linker command file)
+#>00001494          _romp_at (linker command file)
 
 # .romp
-#>0000142C          __S_romp (linker command file)
+#>00001494          __S_romp (linker command file)
 
 
 # Memory map:
@@ -558,12 +558,12 @@
   000001C4 000001C4 00000004 .abs_vector_113 abs_vector_113
   000001C8 000001C8 00000004 .abs_vector_114 abs_vector_114
   00000410 00000410 00000000 .code      code
-  00000410 00000410 00001014 .text      code
+  00000410 00000410 0000107C .text      code
   00800400 00800400 00000000 .userram   userram
-  00800400 00001424 00000008 .data      userram
+  00800400 0000148C 00000008 .data      userram
   00800408 00800408 000001C4 .bss       userram
   008005CC 008005CC 00000000 .custom    userram
-  008005CC 0000142C 00000018 .romp      userram
+  008005CC 00001494 00000018 .romp      userram
 
-# Link start time: Tue Jun 29 17:01:44 2021
-# Link end time: Tue Jun 29 17:01:44 2021
+# Link start time: Mon Jul 05 16:26:27 2021
+# Link end time: Mon Jul 05 16:26:27 2021
