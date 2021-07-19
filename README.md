@@ -38,43 +38,214 @@ Documentation Technique MCF51AG128<br>
 [d. Flash memory protection](#3.4) <br>
 
 
-# Bootloader V4.0 <a id="1"></a>
+# Bootloader V4.2 <a id="1"></a>
+
+Utilisez la dernière version du Bootloader (a téléverser sur la carte avec le port BDM) :
+Fichier S19 bootloader V4.2 : 
+
+Utilisez la dernière version du Flasher SPI avec un ordinateur connecté a la FEB :
+Programme python du flasher SPI : 
+-> Pour l'utilisation du flasher SPI, voir plus bas dans la documentaiton
+
+Téléversez avec le Flasher SPI la version 3 du programme IB :
+Fichier S19 du programme IB V3 compatible avec les versions du bootloader supérieures a la version V3 : 
+-> Pour compiler des code compatible avec le bootloader, voir plus bas dans la documentation
 
 ### 1 - Commandes<a id="1.1"></a>
 
 Les diagrammes de séquences sont en annexe.
 
-Nom | Commande | Nb de mots | Description
-----|--------|------------|-------------
-Save_memory_sector (in RAM) | 300 |N | Command + Lenght + Address MSB + Address LSB + Word MSB[N] + Word LSB[N]
-Erase_flash_sector (non dev) (1kb) | 305 |4 | Command + Address MSB + Address LSB 
-Flash_saved_memory | 310 |1 |Command 
-Read_memory_word | 400 |5 | Command + Address MSB + Address LSB with Read msb + Read lsb*
-Read_status | 410 |2 | Command + Read*
-Read_checksum |420 |2 | Command + Read*
-Load_vectors|600| 1 | Command
-Jump | 700 |3 | Command + Address MSB + Address LSB
+|**Nom** | **Commande** | **Nb de mots** | **Suite d'instructions** | **Description**|
+|--------|--------------|----------------|--------------------------|----------------|
+|Save_memory_sector (in RAM) | 300 |N | Command + Lenght + Address MSB + Address LSB + Word MSB[N] + Word LSB[N]|Sauvegarder un secteur de mémoire dans la mémoire RAM|
+|Erase_flash_sector (1kb) | 305 |4 | Command + Address MSB + Address LSB |Effacer 1 kb de mémoire flash à partir d’une adresse donnée|
+|Flash_saved_memory | 310 |1 |Command |Ecrire dans la mémoire flash le secteur mémoire préalablement sauvegardé dans la mémoire ram (avec la commande Save_memory_sector)|
+|Read_memory_word | 400 |5 | Command + Address MSB + Address LSB with Read msb + Read lsb*|Lire la valeur de la mémoire à une adresse donnée|
+|Read_status | 410 |2 | Command + Read*|Lire l’état du bootloader à un moment donné. Tableau décrivant les codes retours plus bas|
+|Read_checksum |420 |2 | Command + Read*|Lire la checksum calculé par le microcontrôleur après avoir sauvegardé les données reçues en mémoire RAM (Save_memory_sector). La checksum permet de savoir si toutes les informations reçues par le microcontrôleur sont correctes.|
+|Load_vectors|600| 1 | Command|Écrire les vecteurs sauvegardés dans la zone de la mémoire flash vers la mémoire RAM. Cette commande doit être appelé avant le lancement de l’application|
+|Jump_to_specific_address | 700 |3 | Command + Address MSB + Address LSB|Permet d’exécuter le programme du microcontrôleur à une adresse donnée. Une fois que le programme a été écrit dans la mémoire flash, il faut le lancer en faisant un “Jump” à la bonne adresse|
+|Jump_to_application|710 |1|Command| Jump pour lancer l'application à partir de l'adresse de startup stocké à l'address 0x1FF0 (Stocké dans la zone après les vecteurs et contenu dans la zone de protection entre 0x1800 et 0x2000) Si aucune valeur n'est stocké (valeur 0xFFFFFFF) alors aucune action n'est effectué. Un "check status" peut être effectué après le lancement pour savoir seumlement si il y a une erreur, (Si l'application est bien lancé il n'y a plus la main sur le bootloader), sinon il envoie le code d'erreur "7" La valeur à l'addresse 0x1FF0 est effacé a chaque lancement de processus de reflash du microcontroleur|
 
 *N'importe quelle valeur possible car c'est la valeur lu qui va être importante.
 
+**300 - Save_memory_sector (in RAM)**
+
+Cette commande permet de sauvegarder un secteur de mémoire dans un tableau (memoire RAM).
+La commande est prévus pour effectuer par la suite une inscription dans la mémoire FLASH.
+A chaque inscription, la cheksum est calculée.
+
+Elle fonctionne avec la suite d'instruction suivante :
+- Envoie de la commande 300
+- Envoie du nombre de mot de 32 bits a sauvegarder
+- Envoie de la valeur de l'adresse a partir de l'aquelle les valeurs vont être inscrites dans la mémoire FLASH
+- Envoie des valeurs jusqu'a ce que le nombre de mot attendu est atteint
+
+**305 - Erase_flash_sector (1kb)**
+
+Cette commande efface 1kb la mémoire flash a partir d'une addresse donnée.
+
+Elle fonctionne avec la suite d'instruction suivante :
+- Envoie de la commande 305
+- Envoie de l'adresse de début de l'éffacement 
+
+**310 - Flash_saved_memory**
+
+Cette commande permet d'écrire en mémoire FLASH les valeurs sauvegardés par la commande 300.
+
+Il faut envoyer la commande 310.
+
+**400 - Read_memory_word** 
+
+Cette commande permet de lire une valeur de la mémoire à partir d'une addresse donnée.
+
+Voici la suite d'instruction :
+- Envoie de la commande 400
+- Envoie de l'addresse MSB
+- Envoie de l'address LSB permettant de lire en même temps la valeur MSB de l'address
+- Envoie de la commande 400 permettant de lire la valeur LSB de l'addresse
+
+**410 - Read_status**
+
+Cette commande permet de connaitre l'état du microcontroleur au démarrage ou après une commande
+
+Codes retour de la commande "Check status" :
+|**Valeur**|**Description**|
+|30|Le bootloader est bien lancé, aucune commande n'a été effectué|
+|20|Le microcontroleur est occupé a effectuer une commande|
+|10|Le microcontroleur à bien effectué la dernière commande|
+|7| Une demande de lancement de l'application ("Jump_to_application") a été lancé mais a retourné une erreur |
+|5|La denière commande demandé a retourne une erreur|
+
+Voici la suite d'instruction :
+- Envoie de la commande 410
+- Envoie de la commande 410 permettant la lecture du code retour
+
+**h4. 420 - Read_checksum** 
+
+Cette commande permet de lire la checksum calculé a partir des données envoyés avec la commande 300.
+* Informations complémentaire sur le calcul de la checksum partie 6.
+
+Voici la suite d'instruction :
+- Envoie de la commande 420
+- Envoide la commande 420 pour permettre la lecture de la checksum
+
+**600 - Load_vectors**
+
+Cette commande permet de charger les vecteurs contenus dans la mémoire FLASH en mémoire RAM.
+Cette commande est réquise avant le lancement d'une application car l'application utilise les vecteurs contenus en RAM.
+* Informations complémentaire dans la Partie 4 sur l'organisation de la mémorie.
+
+Il faut envoyer la commande 600.
+
+**700 - Jump_to_specific_address** 
+
+Cette commande permet d'effectuer un JUMP à un adresse voulu dans la mémoire.
+Cette commande n'a pas besoin d'être utilisé pour le lancement de l'application (Commande 710 plus pertinente), elle a été prevu pour le développement du bootloader et éventuellement pour du débuggage futur.
+
+Voici la suite d'instruction :
+- Envoie de la commande 700
+- Envoie de l'adresse de JUMP
+
+**710 - Jump_to_application**
+
+Cette commande permet de lancer l'application.
+La valeur de l'addresse de "_startup" de l'application est stocké à l'address 0x1FF0 (Stocké dans la zone après les vecteurs et contenu dans la zone de protection entre 0x1800 et 0x2000).
+Si aucune valeur n'est stocké (valeur 0xFFFFFFF) alors aucune action n'est effectué.
+Un "check status" peut être effectué après le lancement pour savoir seulement si il y a une erreur,
+(Si l'application est bien lancé il n'y a plus la main sur le bootloader), sinon il envoie le code d'erreur "7"
+La valeur à l'addresse 0x1FF0 est effacé a chaque lancement de processus de reflash du microcontroleur.
+*Voir informations complémentaires partie 5 sur le JUMP et lancement de l'application.
 
 ### 2 - Flasher SPI<a id="1.2"></a>
 
+Le flasher permet de reprogrammer la carte IB avec un ordinateur connecté en réseau avec la FEB.
+*Voir utilisation du flasher partie manuel utilisateur
+
+Voici le visuel du Flasher SPI V4.2 :
+![Flasher S P I4.2](Images/Manual_Flasher/FlasherSPI4.2.png)
+
+
+Dans un premier temps le Flasher s’assure que le bootloader est bien connecté et disponible pour envoyer des données.
+Si le bootloader est opérationnel, le Flasher efface la zone mémoire dédiée à l’application, cette pratique est conseillée dans la documentation avant tout écriture dans la mémoire flash.
+Le Flasher envoie ensuite les données mémoires au bootloader et commande leur écriture dans la mémoire flash après vérification de la checksum. Une fois l’opération commandée, le Flasher s’assure que le bootloader a bien terminé son écriture en mémoire et recommence cette opération jusqu'à la fin du fichier S19.
+A la fin de l'écriture dans la mémoire flash, l'adresse de lancement est enregistré à l'adresse 0x1FF0.
+A chaque opération, le flasher SPI effectue une commande "Check Status" pour vérifier le bon déroulement du reflash.
+
+![D S Flasher S P I](Images/Manual_Flasher/DS_Flasher_SPI.png)
+
+*La commande "JUMP to application" n'est pas présente dans ce diagramme de séquence pour lancer l'application après le reflash.
+
+
 ### 3 - Commande réseaux FEB<a id="1.3"></a>
-<center>
-<img src="Images/CMD_WRITE.PNG"  width="70%"/>
-</center>
-<center>
-<img src="Images/CMD_IDEAL.PNG"  width="70%"/>
-</center>
+
+Voici la trame utilisée pour envoyer et recevoir un mot de 16 bits en SPI :
+
+|**Header** | **Commande** | **Mot SPI** |**Trailer** |
+|-----------|--------------|-------------|------------|
+|aaaaaaaa |C0CC0000A7400141 | XXXXXXXX | aaaaaaaa |
+
+Voici la trame utilisé pour envoyer un mot de 16 bits en SPI (sans retour du MISO) :
+
+|*Header* | *Commande* | *Mot SPI* |*Trailer* |
+|-----------|--------------|-------------|------------|
+|aaaaaaaa |C0CC000087300101| XXXXXXXX | aaaaaaaa |
 
 ### 4 - Organisation de la memoire<a id="1.4"></a>
+
+Lors de la réception des paquets de données le bootloader organise la mémoire.
+La mémoire flash contient deux programmes :
+- Le bootloader (code figé)
+- L’application (code pouvant être reflashé)
+
+L’application est dans une partie décalé de la mémoire flash par rapport au bootloader. Le programme est lancé en faisant un “jump” au niveau de l’application.
+
+Lorsque le microcontrôleur reçoit une interruption (par exemple la réception d’un message SPI) les vecteurs vont pointer dans la partie de la mémoire associée. Mais il n’est pas possible de modifier la place des vecteurs ou de les remplacer (les vecteurs étant utiles au bootloader pour son bon fonctionnement). 
+Une option du microcontrôleur permet de regarder l’emplacement des vecteurs au niveau de la mémoire RAM.
+La mémoire RAM étant volatile, la stratégie utilisée a été de sauvegarder la valeur des vecteurs dans un emplacement de la mémoire Flash et de les placer en RAM à chaque lancement. Lors du lancement de l'application, le registre qui pointe l’emplacement des vecteurs est modifié pour pointer les vecteurs non pas au début de la mémoire flash mais au début de la mémoire RAM.
+Voici l’organisation de la mémoire du microcontrôleur :
 
 <center>
 <img src="Images/Bootloader_memory.PNG"  width="70%"/>
 </center>
 
 ### 5 - Checksum<a id="1.5"></a>
+
+<pre><code class="c">
+int chcksum(struct ShortBits value){
+	int ck = 0;
+	if (value.bit0 == 1) { ck += 1;}
+	if (value.bit1 == 1) { ck += 1;}
+	if (value.bit2 == 1) { ck += 1;}
+	if (value.bit3 == 1) { ck += 1;}
+	if (value.bit4 == 1) { ck += 1;}
+	if (value.bit5 == 1) { ck += 1;}
+	if (value.bit6 == 1) { ck += 1;}
+	if (value.bit7 == 1) { ck += 1;}
+	if (value.bit8 == 1) { ck += 1;}
+	if (value.bit9 == 1) { ck += 1;}
+	if (value.bit10 == 1) { ck += 1;}
+	if (value.bit11 == 1) { ck += 1;}
+	if (value.bit12 == 1) { ck += 1;}
+	if (value.bit13 == 1) { ck += 1;}
+	if (value.bit14 == 1) { ck += 1;}
+	if (value.bit15 == 1) { ck += 1;}
+	
+	return ck;
+}
+</code></pre>
+
+
+Calcul de la checksum au niveau du Flasher (Python 3):
+<pre><code class="python">
+    def chcksum(self,value) :
+        ck = 0
+        table = [int(x) for x in bin(value)[2:]]
+        for i in range (len(table)) :
+            if table[i] == 1 :
+                ck += 1
+        return ck 
+</code></pre>
 
 ## Manuel utilisateur
 
@@ -93,45 +264,21 @@ $ python3 SPI_FasherV4_FEB.py
 ````
 <br>
 
-Une fois lancé, selectionnez le fichier S19 compatible avec le bootloader en cliquant sur "Select File".<br>
+
+Une fois lancé, selectionnez le fichier S19 compatible avec le bootloader en cliquant sur "Select File".
 Pour voir comment compiler un programme compatible avec le bootloader, referez vous au chapitre suivant.
-![Flasher File1](Images/Manual_Flasher/Flasher_file1.PNG)
-![Flasher File2](Images/Manual_Flasher/Flasher_file2.PNG)
 
-<br>
-
-> Attention ! Avant de lancer le reflash de la carte votre FEB doit être initialisé. <br>
+> Attention ! Avant de lancer le reflash de la carte votre FEB doit être initialisé. 
 > Cependant toute application communiquant avec la FEB comme qNectarCam doivent être fermés.
 
-<br>
+![Flasher S P I4.2](Images/Manual_Flasher/FlasherSPI4.2.png)
 
-Pour verifier que la FEB et le flasher soit bien initialisés et en communication avec l'IB, cliquez sur le bouton "Check status". <br>
-Le code réponse retourné dans la console doit être "10". <br>
-![Check Status](Images/Manual_Flasher/check_status.PNG)
+Lancez le reflash de la carte en cliquant sur "Flash memory".
+Une barre de progression va se lancer et les boutons ne seront plus accessible pour eviter toute erreur.
 
-Lancez le reflash de la carte en cliquant sur "Flash memory".<br>
-Une barre de progression vas se lancer et les boutons "Flash memory" et "Launch program" ne seront plus accessible pour evitez toute erreur.<br>
-<br>
-Il se peut que votre version du flasher n'affiche pas 100% mais 99% à la fin d'un reflash, 
-pour être sûr que le transfert soit terminé regardez sur la console qu'il y ai le message de fin de transfert.
+Lorsque la barre affiche "Successful" vous pourrez appuyer sur "Lauch program" pour lancer l'application.
 
-![Flasher Launched](Images/Manual_Flasher/Flasher_launched.PNG)
-<br>
-Message de fin de transfert sur la console : <br>
-![End](Images/Manual_Flasher/end.PNG)
-<br>
-Pour lancer le programme, appuyez sur "Unlock"
-![Flasher Launched2](Images/Manual_Flasher/Flasher_launched2.PNG)
-
-Avant de lancer l'application vous devez être sûr de l'addresse de lancement.<br>
-Pour la trouver vous devrez ouvrir le fichier S19 et regarder le numero d'addresse entouré en rouge a la dernière ligne.<br>
-Reportez cette addresse dans la textbox au niveau de "Lauch program"
-![S19 Address](Images/Manual_Flasher/S19_address.PNG)
-![Flasher Launched4](Images/Manual_Flasher/Flasher_launched4.PNG)
-
-<br>
-
-Enfin, cliquez sur "Launch Program" pour lancer l'application.
+![Flasher S P I4.2 Success](Images/Manual_Flasher/FlasherSPI4.2_success.png)
 
 ### II - Compiler une application avec CodeWarrior compatible avec le bootloader<a id="2.2"></a>
 
