@@ -41,14 +41,14 @@ Documentation Technique MCF51AG128<br>
 # Bootloader V4.2 <a id="1"></a>
 
 Utilisez la dernière version du Bootloader (a téléverser sur la carte avec le port BDM) :
-Fichier S19 bootloader V4.2 : 
+Fichier S19 bootloader V4.2 : https://github.com/GautierDev31/MCF51AG128_Bootloader_SPI/blob/main/S19%20_files/Bootloader_MCF51AG128_V4.2.S19
 
 Utilisez la dernière version du Flasher SPI avec un ordinateur connecté a la FEB :
-Programme python du flasher SPI : 
+Programme python du flasher SPI : https://github.com/GautierDev31/MCF51AG128_Bootloader_SPI/blob/main/Bootloader%20V4/Flasher/Flasher_SPI_FEB_V4.2.py
 -> Pour l'utilisation du flasher SPI, voir plus bas dans la documentaiton
 
 Téléversez avec le Flasher SPI la version 3 du programme IB :
-Fichier S19 du programme IB V3 compatible avec les versions du bootloader supérieures a la version V3 : 
+Fichier S19 du programme IB V3 compatible avec les versions du bootloader supérieures a la version V3 : https://github.com/GautierDev31/MCF51AG128_Bootloader_SPI/blob/main/S19%20_files/Code_IB_V3_BootloaderV4.S19
 -> Pour compiler des code compatible avec le bootloader, voir plus bas dans la documentation
 
 ### 1 - Commandes<a id="1.1"></a>
