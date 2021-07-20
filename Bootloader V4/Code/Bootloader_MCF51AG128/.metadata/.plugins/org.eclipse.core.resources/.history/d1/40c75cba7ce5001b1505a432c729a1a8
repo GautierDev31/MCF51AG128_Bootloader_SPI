@@ -365,10 +365,10 @@ __declspec(register_abi) void interrupt ITSPI2(void)
 			case 700:
 				state_running = 700;
 				 break;
-			/* Jump to application */	 
+
 			case 710 :
 				address = *(volatile dword *)(0x1FF0);
-				if (address != 0xFFFFFFFF && address >0x2000){
+				if (address != 0xFFFFFFFF && address <0x2000){
 					FPROT_FPS = 0x40; 
 					FPROT_FPOPEN = 1;
 					asm ( MOVE.L   address, A0);
